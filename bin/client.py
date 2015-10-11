@@ -1,9 +1,47 @@
 #! /usr/bin/env python3
 
+# first of all import the socket library
+import socket               # Import socket module
+import sys
+
 
 def main():
-    print("coucou, je suis client")
 
+    try:
+        # create an AF_INET, STREAM socket (TCP)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    except socket.error as msg:
+        print('Failed to create socket. Error code: ' +
+              str(msg[0]) + ' , Error message : ' + msg[1])
+        sys.exit()
+
+    print('Socket Created')
+
+    host = 'localhost'
+    port = 80
+    try:
+        remote_ip = socket.gethostbyname(host)
+
+    except socket.gaierror:
+        # could not resolve
+        print('Hostname could not be resolved. Exiting')
+        sys.exit()
+
+    print('Ip address of ' + host + ' is ' + remote_ip)
+    # Connect to remote server
+    s.connect((remote_ip, port))
+    print('Socket Connected to ' + host + ' on ip ' + remote_ip)
+    # Send some data to remote server
+    message = "GET / HTTP/1.1\r\n\r\n"
+    try:
+        # Set the whole string
+        s.sendall(message.encode())
+    except socket.error:
+        # Send failed
+        print('Send failed')
+        sys.exit()
+
+    print('Message send successfully')
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
