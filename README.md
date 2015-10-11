@@ -36,3 +36,8 @@ Il faudra utiliser la taille de contenu
 "Content-Length:" TailleDuContenu 
 ```
 
+# Test
+Depuis la racine
+```
+python3 -m unittest
+```
