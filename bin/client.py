@@ -17,7 +17,7 @@ def main():
 
     print('Socket Created')
 
-    host = 'localhost'
+    host = 'www.google.com'
     port = 80
     try:
         remote_ip = socket.gethostbyname(host)
@@ -42,7 +42,9 @@ def main():
         sys.exit()
 
     print('Message send successfully')
-
+    # Now receive data
+    reply = s.recv(4096)
+    print(reply)
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
 # or if it was imported as a module is to check the content of
