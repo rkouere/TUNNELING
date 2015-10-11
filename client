@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-from bin.tools import main
+from bin.client import main
 
 main()
-
