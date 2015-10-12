@@ -44,3 +44,25 @@ Depuis la racine
 ```
 python3 -m unittest
 ```
+
+
+## Lancement 
+Attention, a l'heure qu'il est aucuns tests fonctionnels
+n'ont été réalisés. Tout ce qui suit suppose donc que ca marche.
+
+Il faut bien lancé les scripts sur des machines distinctes car
+on ne peut pas ouvrir 2 fois le même port (le port 80)
+
+L'envoie d'une requète au client à partir de l'entreprise n'est pas géré.
+
+
+Sur le poste de l'entreprise il faut lancer : $ python3 servEntreprise.py
+
+Sur le poste du client : $ python3 clientHouse.py
+
+A ce stade, si tout va bien il faut initialiser la connection avec :
+    $ ssh localhost -p 8888   (cf clientHouse.py:155 : listen_port)
+
+Pour éviter la demande des privilèges, le port du serveur http  est pour l'instant 8081 cf clientHouse.py:8 : server_port ; servEntreprise.py:97 )
+
+La suite est encore inconnue...
