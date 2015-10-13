@@ -1,11 +1,13 @@
+import time
 import socket
 import sys
 from threading import Thread
 from binascii import hexlify
 from servEntreprise import *
 
-server_hostname='localhost'
-server_port=8081
+server_hostname='pcmt23'
+server_port=8890
+
 
 tok=-1
 # Gère le flux de retour HTTP vers le canal SSH
@@ -17,6 +19,7 @@ class HTTPTunnelToSSH(Thread):
             
         data=self.http.recv(8192)
         
+        print("init httptunn content receive="+data.decode())
         idx=data.find(b'\r\n\r\n')
         if idx == -1:
             headers = ""
@@ -25,23 +28,32 @@ class HTTPTunnelToSSH(Thread):
             headers=data[:idx]
 
             #Récupération du Cookie si il y est
-            if "Cookie"  in headers :
-                idx_cookie=headers.find(cookie_header)
-                
-                idx_tok=data.find(b'tok=') 
-                idx_end_cookie=headers[idx_cookie+len(cookie_header):].find(b'\r\n')
-                self.tok=int(headers[idx_cookie:idx_end_cookie])
+            if "Cookie"  in headers.decode() :
+               	print("headears ="+headers.decode()) 
+                idx_tok=headers.find("tok=".encode()) 
+                idx_end_tok=headers[idx_tok:].find(b'\r\n')
+                self.tok=headers[idx_tok+4:]
                 tok=self.tok
-    def run():
+                print("init tok="+str(tok))
+            
+            content=data[idx+4:] 
+            print("httptun init send : "+content.decode())
+            self.ssh.sendall(content)
+
+    def run(self):
         while True:
 
             data=self.http.recv(8192)
-            
-            idx_end_size=data.find(b'\r\n')
-            hex_size=data[:idx_end_size]
-            size=int.from_bytes(hex_size)
-            content=data[idx_end_size:-2]
-            self.ssh.sendall(content)
+            if data:            
+              print("httptun run data="+str(data))
+              idx_end_size=data.find(b'\r\n')
+              #hex_size=data[:idx_end_size]
+              #print("hex_size="+int(hex_size))
+              #size=int.from_bytes(hex_size)
+              content=data[idx_end_size+2:-2]
+
+              print("httptun run content="+str(content))
+              self.ssh.sendall(content)
 
 
 # Gère la sortie du flux ssh et redirige en HTTP
@@ -74,13 +86,12 @@ class SSHTunnelClient(Thread):
         print('Ip address of ' + server_hostname + ' is ' + remote_ip)
         
         # Connect to remote server
-        self.http.connect((remote_ip, server_port))
+       	self.http.connect((remote_ip, server_port))
        
         
-        HTTPTunnelToSSH(self.ssh,self.http).start()
         
         content=self.ssh.recv(8192)
-        print('Socket Connected to ' + host + ' on ip ' + remote_ip)
+        print("init content receive="+content.decode())
         
         # Send some data to remote server
         header_base = ("POST / HTTP/1.1\r\n"
@@ -89,9 +100,10 @@ class SSHTunnelClient(Thread):
 
         header=(header_base
               +"Content-Length: %d\r\n"%(len(content))
-              +"\r\n"
-              )
-        message=header+content
+              +"\r\n")
+        message=header.encode() + content
+ 
+        print("message="+message.decode())
         try:
             # Set the whole string
             self.http.sendall(message)
@@ -103,31 +115,36 @@ class SSHTunnelClient(Thread):
 
         print('Message send successfully')
         # Now receive data
-    
-    
-    def run():
+        HTTPTunnelToSSH(self.ssh,self.http).start()
+
+
+
+    def run(self):
         
         header_base = ("POST / HTTP/1.1\r\n"
                   +"Host: %s\r\n"%(server_hostname))
 
         while True:
             content=self.ssh.recv(8192)
-            
-            header=(header_base
-                    +"Content-Length: %d\r\n"%(len(content))
-                    +"Cookie: tok="+str(tok)+"\r\n"               
-                    +"\r\n"
-                )
-            message=header+content
-            
-            try:
-                # Set the whole string
-                self.http.sendall(message)
+            if content : 
+              #print("content receive="+content.decode())
+              header=(header_base
+                      +"Content-Length: %d\r\n"%(len(content))
+                      +"Cookie: tok="+str(1234567890)+"\r\n"               
+                      +"\r\n"
+                  )
+              message=header.encode()+content
+              #print("message="+message.decode())
+
+              try:
+                  time.sleep(0.01)
+                  # Set the whole string
+                  self.http.sendall(message)
         
-            except socket.error:
-                # Send failed
-                print('Send failed')
-                sys.exit()
+              except socket.error:
+                  # Send failed
+                  print('Send failed')
+                  sys.exit()
 
 
 
@@ -148,11 +165,12 @@ def wait_conn(sock):
         # second is the tuple of arguments to the function.
         SSHTunnelClient(conn).start()
         #start_new_thread(clientthread, (conn,))
-    s.close()
+    sock.close()
 
 
 def main():
-    listen_port=8888
+	
+    listen_port=int(sys.argv[1])
     
     #ssh_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #ssh_sock.connect(("localhost",22))
