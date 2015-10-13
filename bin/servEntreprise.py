@@ -2,6 +2,7 @@ import socket
 import sys
 from threading import Thread
 from binascii import hexlify
+import random
 
 cookie_header=b'Cookie: tok='
 
@@ -10,9 +11,11 @@ client_list={}
 class HTTPRedirectToSSH(Thread):
     def __init__(self, http_socket ):
         Thread.__init__(self)
+        print("init httpredir")
         self.http=http_socket
     
     def run(self):
+        print("run http redirect")
         cookie=-1
         while True:
             # Receiving from client
@@ -27,7 +30,7 @@ class HTTPRedirectToSSH(Thread):
                 headers=data[:idx]
 
                 #Récupération du Cookie si il y est
-                if "Cookie"  in headers :
+                if "Cookie"  in headers.decode():
                     idx_cookie=headers.find(cookie_header)
                     
                     idx_end_cookie=headers[idx_cookie+len(cookie_header):].find(b'\r\n')
@@ -59,7 +62,7 @@ class SSHRedirectToHTTP(Thread):
         self.ssh=ssh_socket
         self.http=http_socket
         
-        tok=random.randint(0xffffffffffffffff)
+        tok=random.randint(0, 0xffffffffffffffff)
         while tok in client_list.keys():
             tok = random.randint(0xffffffffffffffff)
         client_list[tok] = self
@@ -70,7 +73,7 @@ class SSHRedirectToHTTP(Thread):
               +"Set-Cookie: tok=%x\r\n"%tok
               +"\r\n")
         
-        self.http.send(message)
+        self.http.send(message.encode())
     
     def run(self):
         
@@ -81,7 +84,7 @@ class SSHRedirectToHTTP(Thread):
             
             print("data="+str(data))
             try:
-                self.ssh.sendall(("%x\r\n"%(len(data)))+data+"\r\n")
+                self.ssh.sendall((("%x"%(len(data))).encode())+b'\r\n'+data+b'\r\n')
             except socket.error as e:
                 print(e)
                 break
@@ -89,12 +92,13 @@ class SSHRedirectToHTTP(Thread):
         self.conn.close()
 
 
+HOST=''
+PORT=8890
 class HttpServer(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        self.sock.bind((socket.gethostname(), 8081))
+        self.sock.bind((HOST, PORT))
     
     def run(self):
         # Start listening on socket
