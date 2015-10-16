@@ -9,9 +9,12 @@ class httpPacket:
         Set the typical header
         """
         self.header = (
-            "HTTP/1.1 200 OK" + hardReturn
-            + "Content-type: application/octet-stream" + hardReturn
+            "Content-type: application/octet-stream" + hardReturn
             + "Transfer-Encoding: chunked" + hardReturn)
+        self.GETHeader = (
+            "GET HTTP / 1.1" + hardReturn
+                )
+        
         self.data = ""
         self.contentLength = ""
 
@@ -20,6 +23,9 @@ class httpPacket:
         Sets a cookie. Has to be a digit
         """
         self.header += "Set-Cookie: tok=" + str(token) + hardReturn
+
+    def setHost(self, host):
+        self.GETHeader += "Host: " + host +  hardReturn
 
     def setData(self, data):
         """
@@ -30,16 +36,14 @@ class httpPacket:
         self.setContentLength()
 
     def setContentLength(self):
-        self.contentLength = 
-            "Content-length: " + str(len(self.data)) + hardReturn
+        self.contentLength = "Content-length: " + str(len(self.data)) + hardReturn
 
-    def getPacket(self):
+    def getGETPacket(self):
         """
         Constructs the http packet to send
         """
-        packet = self.header + hardReturn + self.contentLength + self.data
+        packet =  self.GETHeader + self.header + self.contentLength + hardReturn +  self.data
         return packet
-
 
 def test():
     print("test")
@@ -49,7 +53,7 @@ def main():
     packet = httpPacket()
     packet.setCookie(1234)
     packet.setData("salut tout le monde")
-    print(packet.getPacket())
+    print(packet.getGETPacket())
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
