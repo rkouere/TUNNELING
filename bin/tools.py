@@ -37,7 +37,7 @@ class httpPacket:
         """
         Constructs the http packet to send
         """
-        packet = self.header + self.contentLength + self.data
+        packet = self.header + hardReturn + self.contentLength + self.data
         return packet
 
 
