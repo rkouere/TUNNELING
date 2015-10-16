@@ -1,6 +1,70 @@
 #! /usr/bin/env python3
 
+import socket   #for sockets
 hardReturn = "\r\n"
+
+
+class server:
+    def __init__(self, host, port, debug=False):
+        self.host = host
+        self.port = port
+        self.debug = debug
+    
+    def initConnection(self):
+        self.initSocket()
+        self.getHostName()
+        self.connectToHost()
+
+
+    def initSocket(self):
+        """
+        Initialise une socket
+        """
+        try:
+            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        except socket.error:
+            print('Failed to create socket')
+            sys.exit()
+        print('Socket Created')
+
+    def getHostName(self):
+        """
+        Get the ip address of the host.
+        """
+        try:
+            self.remote_ip = socket.gethostbyname(self.host)
+        except socket.gaierror:
+            #could not resolve
+            print('Hostname could not be resolved. Exiting')
+            sys.exit()
+    
+    def connectToHost(self):
+        """
+        Connect to the remote host
+        """
+        self.s.connect((self.remote_ip, self.port))
+        print('Socket Connected to ' + self.host + ' on ip ' + self.remote_ip)
+
+    def sendPacket(self, packet):
+        """
+        Takes a packet as a string
+        Sends a packet
+        Return : error if the packet could not be sent
+        """
+        try :
+            #Set the whole string
+            print(packet.encode())
+            self.s.sendall(packet.encode())
+        except socket.error:
+            #Send failed
+            print('Send failed')
+            sys.exit()
+
+    def receivePacket(self):
+        """
+        Receive a packet
+        """
+        return self.s.recv(4096)
 
 
 class httpPacket:
@@ -10,11 +74,14 @@ class httpPacket:
         """
         self.header = (
             "Content-type: application/octet-stream" + hardReturn
-            + "Transfer-Encoding: chunked" + hardReturn)
+            + "Transfer-Encoding: chunked" + hardReturn
+            + "Proxy-Connection: ")
         self.GETHeader = (
-            "GET HTTP / 1.1" + hardReturn
+            "GET / HTTP/1.1" + hardReturn
                 )
-        
+        self.OK200Header = (
+            "HTTP/1.1 200 OK" + hardReturn
+                )
         self.data = ""
         self.contentLength = ""
 
@@ -25,7 +92,7 @@ class httpPacket:
         self.header += "Set-Cookie: tok=" + str(token) + hardReturn
 
     def setHost(self, host):
-        self.GETHeader += "Host: " + host +  hardReturn
+        self.host = "Host: " + host +  hardReturn
 
     def setData(self, data):
         """
@@ -42,7 +109,11 @@ class httpPacket:
         """
         Constructs the http packet to send
         """
-        packet =  self.GETHeader + self.header + self.contentLength + hardReturn +  self.data
+        packet =  self.GETHeader + hardReturn
+        return packet
+    
+    def getOkPacket(self):
+        packet =   self.OK200Header + hardReturn 
         return packet
 
 def test():
