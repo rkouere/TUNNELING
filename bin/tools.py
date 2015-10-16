@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 import socket   #for sockets
+import random
+import string
 hardReturn = "\r\n"
 
 
@@ -67,6 +69,8 @@ class server:
         """
         return self.s.recv(4096)
 
+def random_64char():
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(64))
 
 class httpPacket:
     def __init__(self, host):
@@ -79,7 +83,9 @@ class httpPacket:
  
             + "Proxy-Connection: ")
         self.GETHeader = (
-            "GET http://" + host +" HTTP/1.1" + hardReturn
+            "GET http://" + host +"/index2.html" +" HTTP/1.1" + hardReturn
+            + "Connection: keep-alive" + hardReturn
+            + "Cache-Control: no-cache" + hardReturn
                 )
         self.OK200Header = (
             "HTTP/1.1 200 OK" + hardReturn
