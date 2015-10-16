@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
 
-import socket   #for sockets
-import random
-import string
+import socket   # for sockets
+import sys
 hardReturn = "\r\n"
 
 
@@ -11,12 +10,11 @@ class server:
         self.host = host
         self.port = port
         self.debug = debug
-    
+
     def initConnection(self):
         self.initSocket()
         self.getHostName()
         self.connectToHost()
-
 
     def initSocket(self):
         """
@@ -37,10 +35,10 @@ class server:
             self.remote_ip = socket.gethostbyname(self.host)
             print("Host " + self.host + " is on ip " + self.remote_ip)
         except socket.gaierror:
-            #could not resolve
+            # could not resolve
             print('Hostname could not be resolved. Exiting')
             sys.exit()
-    
+
     def connectToHost(self):
         """
         Connect to the remote host
@@ -54,12 +52,12 @@ class server:
         Sends a packet
         Return : error if the packet could not be sent
         """
-        try :
-            #Set the whole string
+        try:
+            # Set the whole string
             print(packet.encode())
             self.s.sendall(packet.encode())
         except socket.error:
-            #Send failed
+            # Send failed
             print('Send failed')
             sys.exit()
 
@@ -69,8 +67,6 @@ class server:
         """
         return self.s.recv(4096)
 
-def random_64char():
-        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(64))
 
 class httpPacket:
     def __init__(self, host):
@@ -80,19 +76,17 @@ class httpPacket:
         self.header = (
             "Content-type: application/octet-stream" + hardReturn
             + "Transfer-Encoding: chunked" + hardReturn
- 
             + "Proxy-Connection: ")
         self.GETHeader = (
-                "GET http://" + host +":80/cgi-bin/test.py" +" HTTP/1.1" + hardReturn
+            "GET /cgi-bin/test.py"
+            + " HTTP/1.1" + hardReturn
             + "Connection: keep-alive" + hardReturn
-            + "Cache-Control: no-cache" + hardReturn
-                )
+            + "Cache-Control: no-cache" + hardReturn)
         self.OK200Header = (
-            "HTTP/1.1 200 OK" + hardReturn
-                )
+            "HTTP/1.1 200 OK" + hardReturn)
         self.data = ""
         self.contentLength = ""
-        self.host = "Host: " + host +  hardReturn
+        self.host = "Host: " + host + hardReturn
 
     def setCookie(self, token):
         """
@@ -109,18 +103,20 @@ class httpPacket:
         self.setContentLength()
 
     def setContentLength(self):
-        self.contentLength = "Content-length: " + str(len(self.data)) + hardReturn
+        self.contentLength = "Content-length: " + str(
+            len(self.data)) + hardReturn
 
     def getGETPacket(self):
         """
         Constructs the http packet to send
         """
-        packet =  self.GETHeader + self.host + hardReturn
+        packet = self.GETHeader + self.host + hardReturn
         return packet
-    
+
     def getOkPacket(self):
-        packet =   self.OK200Header + hardReturn 
+        packet = self.OK200Header + hardReturn
         return packet
+
 
 def test():
     print("test")

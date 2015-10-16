@@ -1,16 +1,6 @@
-import http.server
-import socketserver
+from http.server import CGIHTTPRequestHandler, HTTPServer
 
-PORT = 80
-
-
-
-handler = http.server.CGIHTTPRequestHandler
-handler.cgi_directories = ['/']  # this is the default
-
-
-httpd = socketserver.TCPServer(("", PORT), handler)
-
-print("serving at port", PORT)
-httpd.serve_forever()
-
+handler = CGIHTTPRequestHandler
+handler.cgi_directories = ['/cgi-bin', '/htbin']  # this is the default
+server = HTTPServer(('localhost', 80), handler)
+server.serve_forever()
