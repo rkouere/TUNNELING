@@ -12,8 +12,7 @@ def main(host, port):
     con = server(host, port, True)
     con.initConnection()
     #Send some data to remote server
-    message = httpPacket()
-    message.setHost(host)
+    message = httpPacket(host)
     con.sendPacket(message.getGETPacket())
     print('Message send successfully')
      

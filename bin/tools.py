@@ -68,31 +68,30 @@ class server:
 
 
 class httpPacket:
-    def __init__(self):
+    def __init__(self, host):
         """
         Set the typical header
         """
         self.header = (
             "Content-type: application/octet-stream" + hardReturn
             + "Transfer-Encoding: chunked" + hardReturn
+ 
             + "Proxy-Connection: ")
         self.GETHeader = (
-            "GET / HTTP/1.1" + hardReturn
+            "GET http://" + host +" HTTP/1.1" + hardReturn
                 )
         self.OK200Header = (
             "HTTP/1.1 200 OK" + hardReturn
                 )
         self.data = ""
         self.contentLength = ""
+        self.host = "Host: " + host +  hardReturn
 
     def setCookie(self, token):
         """
         Sets a cookie. Has to be a digit
         """
         self.header += "Set-Cookie: tok=" + str(token) + hardReturn
-
-    def setHost(self, host):
-        self.host = "Host: " + host +  hardReturn
 
     def setData(self, data):
         """
@@ -109,7 +108,7 @@ class httpPacket:
         """
         Constructs the http packet to send
         """
-        packet =  self.GETHeader + hardReturn
+        packet =  self.GETHeader + self.host + hardReturn
         return packet
     
     def getOkPacket(self):
