@@ -33,6 +33,7 @@ class server:
         """
         try:
             self.remote_ip = socket.gethostbyname(self.host)
+            print("Host " + self.host + " is on ip " + self.remote_ip)
         except socket.gaierror:
             #could not resolve
             print('Hostname could not be resolved. Exiting')
