@@ -83,7 +83,7 @@ class httpPacket:
  
             + "Proxy-Connection: ")
         self.GETHeader = (
-            "GET http://" + host +"/index2.html" +" HTTP/1.1" + hardReturn
+                "GET http://" + host +":80/cgi-bin/test.py" +" HTTP/1.1" + hardReturn
             + "Connection: keep-alive" + hardReturn
             + "Cache-Control: no-cache" + hardReturn
                 )
