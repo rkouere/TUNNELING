@@ -1,15 +1,56 @@
 import socket
 import threading
+import time
 
 class myThread (threading.Thread):
     def __init__(self, socket, address):
+        """
+        Initialise the variables needed to communicate
+        """
         self.socket = socket
         self.address = address[0]
         self.port = address[1]
         print("connection accepted with " + self.address)
-    def run(self):
-        self.socket.sendall("coucou".encode())
 
+    def run(self):
+        self.communicate()
+    
+    def receive(self):
+        """
+        Try to receive a connection. If not, close the connection
+        """
+        data = self.socket.recv(1024)
+        if not data:
+            return False
+        else:
+            print("received data : " + data.decode())
+            return data
+    
+    def send(self, data):
+        """
+        Sends a data string
+        If the connection is closed, close the connection
+        """
+        self.socket.sendall(data.encode())
+        print("sent " + str(data))
+        time.sleep(0.1)
+        
+
+
+    def communicate(self):
+        """
+        Sends the reply
+        Waits for other connections and sends the reply
+        """
+        tok = 1
+        self.socket.sendall(str(tok).encode())
+        while True:
+            tok += 1
+            data = self.receive() 
+            if data == False: break
+            print("received data " + data.decode())
+            self.send(str(tok))
+            
 
 
 class server:
@@ -22,13 +63,22 @@ class server:
         self.serversocket.listen(5)
     
     def accept(self):
+        """
+        Waits for a connection on the socket
+        When a connection has been made, starts a new thread
+        """
         while True:
             # accept connections from outside
             (clientsocket, address) = self.serversocket.accept()
             # now do something with the clientsocket
             # in this case, we'll pretend this is a threaded server
-            ct = myThread(clientsocket, address)
-            ct.run()
+            
+            try:
+                ct = myThread(clientsocket, address)
+                ct.run()
+            except socket.error as e:
+                print("socket broken. Closing the connection")
+                ct.close()
 
 
 if __name__ == "__main__":
