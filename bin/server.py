@@ -17,7 +17,8 @@ class myThread (threading.Thread):
     
     def receive(self):
         """
-        Try to receive a connection. If not, close the connection
+        Try to receive a connection. 
+        Return False if there is the connection has to be closed (if it receives no data)
         """
         data = self.socket.recv(1024)
         if not data:
@@ -41,6 +42,7 @@ class myThread (threading.Thread):
         """
         Sends the reply
         Waits for other connections and sends the reply
+        If the connection is closed, stops the loop
         """
         tok = 1
         self.socket.sendall(str(tok).encode())
