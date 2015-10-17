@@ -1,5 +1,10 @@
 # TUNNELING
 
+# Usage
+    + Maison : "vps205524.ovh.net 8001 80"
+    + Entreprise : "localhost 80 22"
+ 
+
 Bonnes info
 http://www.binarytides.com/python-socket-programming-tutorial/
 
