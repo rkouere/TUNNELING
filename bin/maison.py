@@ -2,6 +2,7 @@ import socket
 import sys
 from threading import Thread
 import time
+from tools import client
 
 
 def sshListening(host, port):
@@ -21,10 +22,7 @@ def sshListening(host, port):
     print("connection tcp created")
     data = http_socket.recv(1024)
     print("http data = " + data.decode())
-    ssh_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssh_con.connect(("localhost", 22))
-    print("connection ssh ok")
-    # on s'occupe de renvoyer les messages venant de ssh vers http
+    ssh_con = client("localhost", 22)
     sshToHttp(http_socket, ssh_con, data).start()
     # on continue de recevoir ce que http recoit et de le renvoyer à ssh
     while True:
@@ -32,16 +30,16 @@ def sshListening(host, port):
         data = http_socket.recv(1024)
         print("[http] data " + str(data))
         print("[http] sending the data")
-        ssh_con.sendall(data)
+        ssh_con.send(data)
         time.sleep(0.1)
 
 
 class sshToHttp(Thread):
-    def __init__(self, http_socket, ssh_socket, first_data):
+    def __init__(self, http_socket, ssh_client, first_data):
         Thread.__init__(self)
-        self.ssh = ssh_socket
+        self.ssh = ssh_client
         self.http = http_socket
-
+        self.ssh.initConnection()
         print("[SSHRedirectToHTTP] send first message = " + str(first_data))
         self.ssh.send(first_data)
 
@@ -52,14 +50,14 @@ class sshToHttp(Thread):
         while True:
             # Receiving from ssh
             print("[SSHRedirectToHTTP] waiting for data to receive")
-            data = self.ssh.recv(8192)
+            data = self.ssh.receive()
             if data:
                 print("[SSHRedirectToHTTP] recv")
                 print("[SSHRedirectToHTTP] dataSSH = " + str(data))
                 try:
                     print("[SSHRedirectToHTTP] sendall")
                     time.sleep(0.01)
-                    self.http.sendall(data)
+                    self.http.send(data)
                 except socket.error as e:
                     print(e)
                     break

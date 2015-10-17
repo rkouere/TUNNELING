@@ -1,24 +1,13 @@
 #! /usr/bin/env python3
-
-import sys  # for exit
-from tools import httpPacket, client
+import sys
+from tools import client, httpPacket
 
 
 def main(host, port):
-    # icreate an INET, STREAMing socket
-    con = client(host, port, True)
-    con.initConnection()
-    # Send some data to remote server
-    message = httpPacket(host)
-    # Now receive data
-    tok = 1
-    for i in range(0, 2):
-        tok += 1
-        message.setData(str(tok))
-        print("==============sending packet ==================")
-        con.sendPacket(message.getGETPacket())
-        print("==============receiving packet ==================")
-        print(con.receivePacket())
+    # connection a la machine distante
+    http_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    http_con.connect((host, port))
+    
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,

@@ -12,20 +12,39 @@ SERVER
 
 
 class myThread (threading.Thread):
-    def __init__(self, socket, address):
+    def __init__(self, socket, address, conn):
         """
         Initialise the variables needed to communicate
         """
         self.socket = socket
         self.address = address[0]
         self.port = address[1]
+        self.conn = conn
         print("connection accepted with " + self.address)
 
     def log(self, message):
         print("[server] " + message)
 
+    def addConn(self, con):
+        self.con = con
+
     def run(self):
-        self.communicate()
+        if self.conn is False:
+            self.communicate()
+        else:
+            self.sshCommunicate()
+
+    def sshCommunicate(self):
+        """
+        Receives a connection on the port listening to TCP connections
+        Sends the data ssh
+        """
+        while True:
+            data = self.receive()
+            self.log("received " + data.decode())
+            if data is False:
+                break
+            self.conn.send(data)
 
     def receive(self):
         """
@@ -69,16 +88,18 @@ class server:
     def __init__(self, host, port):
         # create an INET, STREAMing socket
         self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # bind the socket to a public host, and a well-known port
-        self.serversocket.bind((host, port))
-        # become a server socket
-        self.serversocket.listen(5)
+        self.host = host
+        self.port = port
 
-    def accept(self):
+    def acceptHTTP(self, conn):
         """
         Waits for a connection on the socket
         When a connection has been made, starts a new thread
         """
+        # bind the socket to a public host, and a well-known port
+        self.serversocket.bind((self.host, self.port))
+        # become a server socket
+        self.serversocket.listen(5)
         while True:
             # accept connections from outside
             (clientsocket, address) = self.serversocket.accept()
@@ -86,11 +107,26 @@ class server:
             # in this case, we'll pretend this is a threaded server
 
             try:
-                ct = myThread(clientsocket, address)
+                ct = myThread(clientsocket, address, conn)
                 ct.run()
             except KeyboardInterrupt:
                 print("socket broken. Closing the connection")
                 clientsocket.close()
+
+    def connectToSSH(self, conn):
+        try:
+            self.remote_ip = socket.gethostbyname(self.host)
+            print("Host " + self.host + " is on ip " + self.remote_ip)
+        except socket.gaierror:
+            # could not resolve
+            self.log('Hostname could not be resolved. Exiting')
+            sys.exit()
+            try:
+                ct = myThread(self.serversocket, 1, conn)
+                ct.run()
+            except KeyboardInterrupt:
+                print("socket broken. Closing the connection")
+                self.clientsocket.close()
 
 
 """
@@ -104,6 +140,9 @@ class client:
         self.port = port
         self.debug = debug
 
+    def log(self, message):
+        print("[client] " + message)
+
     def initConnection(self):
         self.initSocket()
         self.getHostName()
@@ -116,9 +155,9 @@ class client:
         try:
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error:
-            print('Failed to create socket')
+            self.log('Failed to create socket')
             sys.exit()
-        print('Socket Created')
+        self.log('Socket Created')
 
     def getHostName(self):
         """
@@ -126,10 +165,10 @@ class client:
         """
         try:
             self.remote_ip = socket.gethostbyname(self.host)
-            print("Host " + self.host + " is on ip " + self.remote_ip)
+            self.log("Host " + self.host + " is on ip " + self.remote_ip)
         except socket.gaierror:
             # could not resolve
-            print('Hostname could not be resolved. Exiting')
+            self.log('Hostname could not be resolved. Exiting')
             sys.exit()
 
     def connectToHost(self):
@@ -137,9 +176,10 @@ class client:
         Connect to the remote host
         """
         self.s.connect((self.remote_ip, self.port))
-        print('Socket Connected to ' + self.host + ' on ip ' + self.remote_ip)
+        self.log(
+            'Socket Connected to ' + self.host + ' on ip ' + self.remote_ip)
 
-    def sendPacket(self, packet):
+    def send(self, packet):
         """
         Takes a packet as a string
         Sends a packet
@@ -147,14 +187,14 @@ class client:
         """
         try:
             # Set the whole string
-            print(packet.encode())
-            self.s.sendall(packet.encode())
+            self.log("Sending : " + str(packet))
+            self.s.sendall(packet)
         except socket.error:
             # Send failed
-            print('Send failed')
+            self.log('Send failed')
             sys.exit()
 
-    def receivePacket(self):
+    def receive(self):
         """
         Receive a packet
         """
