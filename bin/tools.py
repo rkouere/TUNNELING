@@ -203,7 +203,7 @@ class httpPacket:
         """
         data_string = str(httpPacket)
         data_index = data_string.find(hardReturn + hardReturn)
-        return data_string[data_index:]
+        return data_string[data_index + 4:]
 
     def getGETPacket(self):
         """
@@ -225,8 +225,6 @@ def main():
     packet = httpPacket("localhost")
     packet.setCookie(1234)
     packet.setData("salut tout le monde")
-    print(packet.getGETPacket())
-    print("====================")
     print(packet.getData(packet.getGETPacket()))
 
 # This is a Python's special:
