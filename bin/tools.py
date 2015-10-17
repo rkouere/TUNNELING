@@ -1,8 +1,99 @@
 #! /usr/bin/env python3
-
 import socket   # for sockets
 import sys
+import threading
+import time
 hardReturn = "\r\n"
+
+
+"""
+SERVER
+"""
+
+
+class myThread (threading.Thread):
+    def __init__(self, socket, address):
+        """
+        Initialise the variables needed to communicate
+        """
+        self.socket = socket
+        self.address = address[0]
+        self.port = address[1]
+        print("connection accepted with " + self.address)
+
+    def run(self):
+        self.communicate()
+
+    def receive(self):
+        """
+        Try to receive a connection.
+        Return False if there is the connection has to be closed
+        (if it receives no data)
+        """
+        data = self.socket.recv(1024)
+        if not data:
+            return False
+        else:
+            print("received data : " + data.decode())
+            return data
+
+    def send(self, data):
+        """
+        Sends a data string
+        If the connection is closed, close the connection
+        """
+        self.socket.sendall(data.encode())
+        print("sent " + str(data))
+        time.sleep(0.1)
+
+    def communicate(self):
+        """
+        Sends the reply
+        Waits for other connections and sends the reply
+        If the connection is closed, stops the loop
+        """
+        tok = 1
+        self.socket.sendall(str(tok).encode())
+        while True:
+            tok += 1
+            data = self.receive()
+            if data is False:
+                break
+            print("received data " + data.decode())
+            self.send(str(tok))
+
+
+class server:
+    def __init__(self, host, port):
+        # create an INET, STREAMing socket
+        self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # bind the socket to a public host, and a well-known port
+        self.serversocket.bind((host, port))
+        # become a server socket
+        self.serversocket.listen(5)
+
+    def accept(self):
+        """
+        Waits for a connection on the socket
+        When a connection has been made, starts a new thread
+        """
+        while True:
+            # accept connections from outside
+            (clientsocket, address) = self.serversocket.accept()
+            # now do something with the clientsocket
+            # in this case, we'll pretend this is a threaded server
+
+            try:
+                ct = myThread(clientsocket, address)
+                ct.run()
+            except socket.error:
+                print("socket broken. Closing the connection")
+                ct.close()
+
+
+"""
+CLIENT
+"""
 
 
 class client:
@@ -66,6 +157,12 @@ class client:
         Receive a packet
         """
         return self.s.recv(4096)
+
+    def close(self):
+        """
+        Close the socket
+        """
+        self.s.close()
 
 
 class httpPacket:
