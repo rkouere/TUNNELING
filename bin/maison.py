@@ -28,10 +28,14 @@ def sshListening(host, port):
     while True:
         print("[http] waiting for data")
         data = http_socket.recv(1024)
-        print("[http] data " + str(data))
-        print("[http] sending the data")
-        ssh_con.send(data)
-        time.sleep(0.1)
+        if data:
+            print("[http] data " + str(data))
+            print("[http] sending the data")
+            ssh_con.send(data)
+            time.sleep(0.1)
+        else:
+            break
+    ssh_con.close()
 
 
 class sshToHttp(Thread):
