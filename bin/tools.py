@@ -6,6 +6,39 @@ import time
 hardReturn = "\r\n"
 
 
+class sshToHttp(threading.Thread):
+    """
+    Redirects the connections from ssh client to http_socket
+    """
+    def __init__(self, http_socket, ssh_client, first_data):
+        threading.Thread.__init__(self)
+        self.ssh = ssh_client
+        self.http = http_socket
+        self.ssh.initConnection()
+        print("[SSHRedirectToHTTP] send first message = " + str(first_data))
+        self.ssh.send(first_data)
+
+    def run(self):
+        """
+        Récupère le flux ssh et le renvoit au serveur
+        """
+        while True:
+            # Receiving from ssh
+            print("[SSHRedirectToHTTP] waiting for data to receive")
+            data = self.ssh.receive()
+            if data:
+                print("[SSHRedirectToHTTP] recv")
+                print("[SSHRedirectToHTTP] dataSSH = " + str(data))
+                try:
+                    print("[SSHRedirectToHTTP] sendall")
+                    time.sleep(0.01)
+                    self.http.send(data)
+                except socket.error as e:
+                    print(e)
+                    break
+            else:
+                break
+        self.ssh.close()
 """
 SERVER
 """
@@ -147,6 +180,12 @@ class client:
         self.initSocket()
         self.getHostName()
         self.connectToHost()
+
+    def getSocket(self):
+        """
+        Return the socket
+        """
+        return self.s
 
     def initSocket(self):
         """

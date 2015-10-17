@@ -1,8 +1,7 @@
 import socket
 import sys
-from threading import Thread
 import time
-from tools import client
+from tools import client, sshToHttp
 
 
 def sshListening(host, port):
@@ -37,37 +36,6 @@ def sshListening(host, port):
             break
     ssh_con.close()
 
-
-class sshToHttp(Thread):
-    def __init__(self, http_socket, ssh_client, first_data):
-        Thread.__init__(self)
-        self.ssh = ssh_client
-        self.http = http_socket
-        self.ssh.initConnection()
-        print("[SSHRedirectToHTTP] send first message = " + str(first_data))
-        self.ssh.send(first_data)
-
-    def run(self):
-        """
-        Récupère le flux ssh et le renvoit au serveur
-        """
-        while True:
-            # Receiving from ssh
-            print("[SSHRedirectToHTTP] waiting for data to receive")
-            data = self.ssh.receive()
-            if data:
-                print("[SSHRedirectToHTTP] recv")
-                print("[SSHRedirectToHTTP] dataSSH = " + str(data))
-                try:
-                    print("[SSHRedirectToHTTP] sendall")
-                    time.sleep(0.01)
-                    self.http.send(data)
-                except socket.error as e:
-                    print(e)
-                    break
-            else:
-                break
-        self.ssh.close()
 
 if __name__ == "__main__":
     sshListening(sys.argv[1], int(sys.argv[2]))
