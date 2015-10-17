@@ -21,6 +21,9 @@ class myThread (threading.Thread):
         self.port = address[1]
         print("connection accepted with " + self.address)
 
+    def log(self, message):
+        print("[server] " + message)
+
     def run(self):
         self.communicate()
 
@@ -34,7 +37,7 @@ class myThread (threading.Thread):
         if not data:
             return False
         else:
-            print("received data : " + data.decode())
+            self.log("received data : " + data.decode())
             return data
 
     def send(self, data):
@@ -43,7 +46,7 @@ class myThread (threading.Thread):
         If the connection is closed, close the connection
         """
         self.socket.sendall(data.encode())
-        print("sent " + str(data))
+        self.log("sent " + str(data))
         time.sleep(0.1)
 
     def communicate(self):
@@ -59,7 +62,6 @@ class myThread (threading.Thread):
             data = self.receive()
             if data is False:
                 break
-            print("received data " + data.decode())
             self.send(str(tok))
 
 
@@ -86,9 +88,9 @@ class server:
             try:
                 ct = myThread(clientsocket, address)
                 ct.run()
-            except socket.error:
+            except KeyboardInterrupt:
                 print("socket broken. Closing the connection")
-                ct.close()
+                clientsocket.close()
 
 
 """
