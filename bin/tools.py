@@ -6,6 +6,41 @@ import time
 hardReturn = "\r\n"
 
 
+class tunnel:
+    """
+    Maison : "vps205524.ovh.net 8001 80"
+    Entreprise : "localhost 80 22"
+    """
+    def __init__(self, host, portIn, portOut):
+        self.host = host
+        self.portIn = portIn
+        self.portOut = portOut
+
+    def init(self):
+        ssh_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ssh_con.bind(("", self.portIn))
+        # become a server socket
+        ssh_con.listen(5)
+        # accept connections from outside
+        (ssh_socket, address) = ssh_con.accept()
+        print("connection ssh created")
+        data = ssh_socket.recv(1024)
+        print("ssh data = " + data.decode())
+        http_con = client(self.host, self.portOut)
+        sshToHttp(ssh_socket, http_con, data).start()
+        while True:
+            print("[http] waiting for data")
+            data = ssh_socket.recv(1024)
+            if data:
+                print("[http] data " + str(data))
+                print("[http] sending the data")
+                http_con.send(data)
+                time.sleep(0.1)
+            else:
+                break
+        http_con.close()
+
+
 class sshToHttp(threading.Thread):
     """
     Redirects the connections from ssh client to http_socket
