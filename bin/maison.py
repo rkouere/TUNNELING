@@ -13,7 +13,7 @@ def sshListening(host, port):
         - redirects the connections made by the ssh server to the http socket
     """
     http_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    http_con.bind((host, port))
+    http_con.bind(("", port))
     # become a server socket
     http_con.listen(5)
     # accept connections from outside
