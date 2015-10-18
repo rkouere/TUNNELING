@@ -78,7 +78,6 @@ class tunnel:
                 print("[ssh] data received = " + str(data))
                 print("[http] sending the data")
                 proceesSSHRequests(data, http_con)
-                # http_con.send(data)
                 time.sleep(0.1)
             else:
                 break
