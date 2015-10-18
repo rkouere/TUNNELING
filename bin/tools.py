@@ -27,6 +27,7 @@ class tunnel:
         data = incoming_socket.recv(1024)
         print("ssh data = " + data.decode())
         outgoing_connection = client(self.host, self.portOut)
+        outgoing_connection.initConnection()
         sshToHttp(
             incoming_socket, outgoing_connection.getSocket(), data).start()
         while True:
