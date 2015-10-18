@@ -51,9 +51,8 @@ class sshToHttp(threading.Thread):
         threading.Thread.__init__(self)
         self.ssh = incoming_connection
         self.http = outgoing_connection
-        self.ssh.initConnection()
         print("[SSHRedirectToHTTP] send first message = " + str(first_data))
-        self.ssh.send(first_data)
+        self.ssh.sendall(first_data)
 
     def run(self):
         """
