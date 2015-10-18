@@ -1,74 +1,65 @@
 #! /usr/bin/env python3
 import socket   # for sockets
 import sys
-import threading
-import time
 hardReturn = "\r\n"
 
 
-class tunnel:
+def createGetPacketFromSSH(packet):
     """
-    Maison : "vps205524.ovh.net 8001 80"
-    Entreprise : "localhost 80 22"
+    Encapsulate data (byte array) in a GET packet
+    Return a bite array of the packer
     """
-    def __init__(self, host, portIn, portOut):
-        self.host = host
-        self.portIn = portIn
-        self.portOut = portOut
-
-    def init(self):
-        incoming_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        incoming_connection.bind(("", self.portIn))
-        # become a server socket
-        incoming_connection.listen(5)
-        # accept connections from outside
-        (incoming_socket, address) = incoming_connection.accept()
-        print("connection ssh created")
-        data = incoming_socket.recv(1024)
-        print("ssh data = " + data.decode())
-        outgoing_connection = client(self.host, self.portOut)
-        outgoing_connection.initConnection()
-        sshToHttp(
-            incoming_socket, outgoing_connection.getSocket(), data).start()
-
-        data = incoming_socket.recv(1024)
-        if data:
-            sshToHttp(
-                outgoing_connection.getSocket(), incoming_socket, data).start()
+    GETHeader = (
+        "GET /"
+        + " HTTP/1.1" + hardReturn
+        + "Connection: keep-alive" + hardReturn
+        + "Cache-Control: no-cache" + hardReturn + hardReturn).encode()
+    return GETHeader + packet
 
 
-class sshToHttp(threading.Thread):
+def createSSHPacketFromHml(packet):
+    data_string = packet.decode("ISO-8859-1")
+    data_index = data_string.find(hardReturn + hardReturn)
+    return packet[data_index + 4:]
+
+
+def packetHttpToSSH(packet):
     """
-    Redirects the connections from ssh client to outgoing_connection
+    Strips the http packet of the header and sends it to ssh
     """
-    def __init__(self, outgoing_connection, incoming_connection, first_data):
-        threading.Thread.__init__(self)
-        self.incoming_connection = incoming_connection
-        self.outgoing_connection = outgoing_connection
-        print("[SSHRedirectToHTTP] send first message = " + str(first_data))
-        self.incoming_connection.sendall(first_data)
+    return packet
+    # return createSSHPacketFromHml(packet)
 
-    def run(self):
-        """
-        Récupère le flux ssh et le renvoit au serveur
-        """
-        while True:
-            # Receiving from ssh
-            print("[SSHRedirectToHTTP] waiting for data to receive")
-            data = self.incoming_connection.recv(1024)
-            if data:
-                print("[SSHRedirectToHTTP] recv")
-                print("[SSHRedirectToHTTP] dataSSH = " + str(data))
-                try:
-                    print("[SSHRedirectToHTTP] sendall")
-                    time.sleep(0.01)
-                    self.outgoing_connection.sendall(data)
-                except socket.error as e:
-                    print(e)
-                    break
-            else:
-                break
-        self.incoming_connection.close()
+
+def packetSSHToHttp(packet, host):
+    """
+    Encapsulates a ssh packet with a http header
+    """
+    return packet
+    # return createGetPacketFromSSH(packet)
+
+
+def processHttpRequests(packet, http_con, ssh_con):
+    """
+    Takes a http packet
+    Strips the packet of its header
+    Sends the packet to ssh
+    TO DO: sends a reply to ssh
+    """
+    data = packetHttpToSSH(packet)
+    print("[processHttpRequests] sending to ssh " + str(data))
+    ssh_con.sendall(data)
+
+
+def proceesSSHRequests(packet, http_con):
+    """
+    Takes a ssh packet
+    Encapsulates the packet in a GET http packet
+    Sends the new packet to http
+    """
+    data = packetSSHToHttp(packet, "")
+    print("[proceesSSHRequests] sending to http " + str(data))
+    http_con.sendall(data)
 
 """
 CLIENT
@@ -88,11 +79,6 @@ class client:
         self.initSocket()
         self.getHostName()
         self.connectToHost()
-
-    def getSocket(self):
-        """
-        Return the socket
-        """
         return self.s
 
     def initSocket(self):
@@ -126,33 +112,6 @@ class client:
         self.log(
             'Socket Connected to ' + self.host + ' on ip ' + self.remote_ip)
 
-    def send(self, packet):
-        """
-        Takes a packet as a string
-        Sends a packet
-        Return : error if the packet could not be sent
-        """
-        try:
-            # Set the whole string
-            self.log("Sending : " + str(packet))
-            self.s.sendall(packet)
-        except socket.error:
-            # Send failed
-            self.log('Send failed')
-            sys.exit()
-
-    def receive(self):
-        """
-        Receive a packet
-        """
-        return self.s.recv(4096)
-
-    def close(self):
-        """
-        Close the socket
-        """
-        self.s.close()
-
 
 class httpPacket:
     def __init__(self, host):
@@ -170,7 +129,6 @@ class httpPacket:
             + "Cache-Control: no-cache" + hardReturn)
         self.OK200Header = (
             "HTTP/1.1 200 OK" + hardReturn)
-        self.data = ""
         self.contentLength = ""
         self.host = "Host: " + host + hardReturn
 
@@ -186,25 +144,32 @@ class httpPacket:
         Sets the length of the data
         """
         self.data = data
-        self.setContentLength()
+        print(self.data)
+        # self.setContentLength()
 
     def setContentLength(self):
+        print(self.data)
         self.contentLength = "Content-length: " + str(
-            len(self.data)) + hardReturn
+            len(self.data.encode())) + hardReturn
 
     def getData(self, httpPacket):
         """
         Returns the data of a http packet
         """
-        data_string = str(httpPacket)
+        data_string = httpPacket.decode()
         data_index = data_string.find(hardReturn + hardReturn)
-        return data_string[data_index + 4:]
+        return httpPacket[data_index + 4:]
 
-    def getGETPacket(self):
+    def getGETHeader(self):
+        return (self.GETHeader + self.host + hardReturn).encode()
+
+    def getGETPacket(self, data):
         """
         Constructs the http packet to send
         """
-        packet = self.GETHeader + self.host + hardReturn + self.data
+        print(data)
+        header = (self.GETHeader + self.host + hardReturn).encode()
+        packet = header + data
         return packet
 
     def getOkPacket(self):
@@ -212,16 +177,14 @@ class httpPacket:
         return packet
 
 
-def test():
-    print("test")
-
-
 def main():
-    packet = httpPacket("localhost")
-    packet.setCookie(1234)
-    packet.setData("salut tout le monde")
-    print(packet.getData(packet.getGETPacket()))
-
+    ssh_packet = b'\x00\x00\x00 \t{\xf14F]\x1by<a\xc6\x9a"\xb8\x9c\xab\xc8\xf5\x94\x96\xb6\xdbzF\xa6K\xd6\xdd\xc6=\xb4\x90\x95\xd7\xf1\xc4\x8a\x1b\xc9n\x00\x00\x00 \xbc~\x977\xb5\xd8\xf0vY\xbbq\xea*\x06\xe9\xab9\x9e\x0f\xc8\x07\xb9\\\x03@\xb6x\xd3\x81\\\x14j\xb3\xf6\x82R\xb3*\xac\xc1\x00\x00\x00\x10\xfeA\xae\x92z])\xeaH\xed\x1d\x1f\'\x1c\x94=\x95+\x81\x1c\xf6\x89/\xb8'
+    print(ssh_packet)
+    get_packet = createGetPacketFromSSH(ssh_packet)
+    print(get_packet)
+    ssh_new_pack = createSSHPacketFromHml(get_packet)
+    print(ssh_new_pack)
+    print(ssh_packet == ssh_new_pack)
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
 # or if it was imported as a module is to check the content of
