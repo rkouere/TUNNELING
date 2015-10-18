@@ -30,17 +30,11 @@ class tunnel:
         outgoing_connection.initConnection()
         sshToHttp(
             incoming_socket, outgoing_connection.getSocket(), data).start()
-        while True:
-            print("[http] waiting for data")
-            data = incoming_socket.recv(1024)
-            if data:
-                print("[http] data " + str(data))
-                print("[http] sending the data")
-                outgoing_connection.send(data)
-                time.sleep(0.1)
-            else:
-                break
-        outgoing_connection.close()
+
+        data = incoming_socket.recv(1024)
+        if data:
+            sshToHttp(
+                outgoing_connection.getSocket(), incoming_socket, data).start()
 
 
 class sshToHttp(threading.Thread):
@@ -49,10 +43,10 @@ class sshToHttp(threading.Thread):
     """
     def __init__(self, outgoing_connection, incoming_connection, first_data):
         threading.Thread.__init__(self)
-        self.ssh = incoming_connection
-        self.http = outgoing_connection
+        self.incoming_connection = incoming_connection
+        self.outgoing_connection = outgoing_connection
         print("[SSHRedirectToHTTP] send first message = " + str(first_data))
-        self.ssh.sendall(first_data)
+        self.incoming_connection.sendall(first_data)
 
     def run(self):
         """
@@ -61,20 +55,20 @@ class sshToHttp(threading.Thread):
         while True:
             # Receiving from ssh
             print("[SSHRedirectToHTTP] waiting for data to receive")
-            data = self.ssh.recv(1024)
+            data = self.incoming_connection.recv(1024)
             if data:
                 print("[SSHRedirectToHTTP] recv")
                 print("[SSHRedirectToHTTP] dataSSH = " + str(data))
                 try:
                     print("[SSHRedirectToHTTP] sendall")
                     time.sleep(0.01)
-                    self.http.sendall(data)
+                    self.outgoing_connection.sendall(data)
                 except socket.error as e:
                     print(e)
                     break
             else:
                 break
-        self.ssh.close()
+        self.incoming_connection.close()
 
 """
 CLIENT
