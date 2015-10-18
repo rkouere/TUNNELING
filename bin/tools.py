@@ -17,38 +17,39 @@ class tunnel:
         self.portOut = portOut
 
     def init(self):
-        ssh_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssh_con.bind(("", self.portIn))
+        incoming_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        incoming_connection.bind(("", self.portIn))
         # become a server socket
-        ssh_con.listen(5)
+        incoming_connection.listen(5)
         # accept connections from outside
-        (ssh_socket, address) = ssh_con.accept()
+        (incoming_socket, address) = incoming_connection.accept()
         print("connection ssh created")
-        data = ssh_socket.recv(1024)
+        data = incoming_socket.recv(1024)
         print("ssh data = " + data.decode())
-        http_con = client(self.host, self.portOut)
-        sshToHttp(ssh_socket, http_con, data).start()
+        outgoing_connection = client(self.host, self.portOut)
+        sshToHttp(
+            incoming_socket, outgoing_connection.getSocket(), data).start()
         while True:
             print("[http] waiting for data")
-            data = ssh_socket.recv(1024)
+            data = incoming_socket.recv(1024)
             if data:
                 print("[http] data " + str(data))
                 print("[http] sending the data")
-                http_con.send(data)
+                outgoing_connection.send(data)
                 time.sleep(0.1)
             else:
                 break
-        http_con.close()
+        outgoing_connection.close()
 
 
 class sshToHttp(threading.Thread):
     """
-    Redirects the connections from ssh client to http_socket
+    Redirects the connections from ssh client to outgoing_connection
     """
-    def __init__(self, http_socket, ssh_client, first_data):
+    def __init__(self, outgoing_connection, incoming_connection, first_data):
         threading.Thread.__init__(self)
-        self.ssh = ssh_client
-        self.http = http_socket
+        self.ssh = incoming_connection
+        self.http = outgoing_connection
         self.ssh.initConnection()
         print("[SSHRedirectToHTTP] send first message = " + str(first_data))
         self.ssh.send(first_data)
@@ -60,14 +61,14 @@ class sshToHttp(threading.Thread):
         while True:
             # Receiving from ssh
             print("[SSHRedirectToHTTP] waiting for data to receive")
-            data = self.ssh.receive()
+            data = self.ssh.recv(1024)
             if data:
                 print("[SSHRedirectToHTTP] recv")
                 print("[SSHRedirectToHTTP] dataSSH = " + str(data))
                 try:
                     print("[SSHRedirectToHTTP] sendall")
                     time.sleep(0.01)
-                    self.http.send(data)
+                    self.http.sendall(data)
                 except socket.error as e:
                     print(e)
                     break
