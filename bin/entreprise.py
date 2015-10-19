@@ -10,7 +10,8 @@ import time
 import socket
 from tools import client, processHttpRequests, proceesSSHRequests
 import threading
-
+import http.client
+import urllib
 
 class sshToHttp(threading.Thread):
     """
@@ -90,4 +91,8 @@ class tunnel:
 # If it is `__main__`, then we are running the program
 # standalone, and we run the main() function.
 if __name__ == "__main__":
-    tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
+    params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+    headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+    conn = http.client.HTTPConnection("vps205524.ovh.net")
+    conn.request("POST", "", params, headers)
+    # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
