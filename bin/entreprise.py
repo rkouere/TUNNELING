@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+# ! /usr/bin/env python3
 # entreprise.py
 """
 Ecoute sur le port xxx les connections ssh
@@ -13,68 +13,50 @@ import threading
 import http.client
 import urllib.request
 
-<<<<<<< HEAD
-=======
-class HttpToSSH(threading.Thread):
+
+
+def sendToSSH(data):
+    print(data)
+
+def getSSH():
     """
-    Redirects the connections from ssh client to ssh_socket
+    Sends GET messages to the maison
+    Forward the message from the HTTP response to ssh
     """
-    def __init__(self, ssh_socket, http_socket, first_data):
-        threading.Thread.__init__(self)
-        self.http = http_socket
-        self.ssh = ssh_socket
-        print(
-            "[SSHRedirectToHTTP][http] send first message = "
-            + str(first_data))
-        proceesSSHRequests(first_data, self.http)
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
+    try: 
+        proxy_support = urllib.request.ProxyHandler({"http":"http://proxy.univ-lille1.fr:3128"})
+        opener = urllib.request.build_opener(proxy_support)
+        urllib.request.install_opener(opener)
+
+        req = urllib.request.Request("http://vps2055u24.ovh.net/", {"Cache-Control": "no-cache, no-store, must-revalidate"})
+        html = urllib.request.urlopen(req).read()
+        sendToSSH(html)
+    except urllib.error.HTTPError:
+        print("toto")
+   
 
 def connectHttp():
-    
-    proxy_support = urllib.request.ProxyHandler({"http":"http://proxy.univ-lille1.fr:3128"})
-    opener = urllib.request.build_opener(proxy_support)
-    urllib.request.install_opener(opener)
+    try:
+        proxy_support = urllib.request.ProxyHandler({"http":"http://proxy.univ-lille1.fr:3128"})
+        opener = urllib.request.build_opener(proxy_support)
+        urllib.request.install_opener(opener)
 
-<<<<<<< HEAD
-    # html = urllib.request.urlopen("http://vps205524.ovh.net/", b'salut').read()
-    html = urllib.request.urlopen("http://vps205524.ovh.net/", b'salut').read()
-    print(html)
-=======
+        # req = urllib.request.Request("http://vps205524.ovh.net/", {"Cache-Control": "no-cache"})
+        req = urllib.request.Request("http://vps205524.ovh.net/")
+        html = urllib.request.urlopen(req).read()
+        return(html)
+    except urllib.error.HTTPError:
+        return False
 
-class tunnel:
+def init():
     """
-    Maison : "sudo python3 maison.py localhost 80 22"
-    Entreprise : "python3 entreprise.py 192.168.0.19 9000 80"
+    Sends packets to maison all the time
+    When a packet has arrived, we start a new process
     """
-    def __init__(self, host, portIn, portOut):
-        self.host = host
-        self.portIn = portIn
-        self.portOut = portOut
-
-    def init(self):
-        ssh_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssh_con.bind(("", self.portIn))
-        # become a server socket
-        ssh_con.listen(5)
-        # accept connections from outside
-        (ssh_socket, address) = ssh_con.accept()
-        print("[ssh] connection ssh created")
-        data = ssh_socket.recv(8192)
-        print("[ssh] data received = " + data.decode())
-        http_con = client(self.host, self.portOut).initConnection()
-        HttpToSSH(ssh_socket, http_con, data).start()
-
-        while True:
-            data = ssh_socket.recv(8192)
-            if data:
-                print("[ssh] data received = " + str(data))
-                print("[http] sending the data")
-                proceesSSHRequests(data, http_con)
-                time.sleep(0.1)
-            else:
-                break
-        http_con.close()
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
+    req = connectHttp()
+    while req is False:
+        req = connectHttp()
+    print(req)
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
@@ -83,12 +65,5 @@ class tunnel:
 # If it is `__main__`, then we are running the program
 # standalone, and we run the main() function.
 if __name__ == "__main__":
-<<<<<<< HEAD
-=======
-    params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
-    headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    conn = http.client.HTTPConnection("vps205524.ovh.net")
-    conn.request("GET", "")#, params, headers)
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
     # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
-    connectHttp()
+    init()
