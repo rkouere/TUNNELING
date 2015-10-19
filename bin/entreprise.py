@@ -13,7 +13,7 @@ import threading
 import http.client
 import urllib
 
-class sshToHttp(threading.Thread):
+class HttpToSSH(threading.Thread):
     """
     Redirects the connections from ssh client to ssh_socket
     """
@@ -71,7 +71,7 @@ class tunnel:
         data = ssh_socket.recv(8192)
         print("[ssh] data received = " + data.decode())
         http_con = client(self.host, self.portOut).initConnection()
-        sshToHttp(ssh_socket, http_con, data).start()
+        HttpToSSH(ssh_socket, http_con, data).start()
 
         while True:
             data = ssh_socket.recv(8192)
@@ -94,5 +94,5 @@ if __name__ == "__main__":
     params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     conn = http.client.HTTPConnection("vps205524.ovh.net")
-    conn.request("POST", "", params, headers)
+    conn.request("GET", "")#, params, headers)
     # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
