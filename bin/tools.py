@@ -13,7 +13,8 @@ def createGetPacketFromSSH(packet):
         "GET /"
         + " HTTP/1.1" + hardReturn
         + "Connection: keep-alive" + hardReturn
-        + "Cache-Control: no-cache" + hardReturn + hardReturn).encode()
+        + "Cache-Control: no-cache" + hardReturn 
+        + "User-Agent: Wget/1.16.1 (linux-gnu)" + hardReturn + hardReturn).encode()
     return GETHeader + packet
 
 
