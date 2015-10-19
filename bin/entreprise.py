@@ -31,7 +31,7 @@ class sshToHttp(threading.Thread):
         """
         while True:
             # Receiving from http
-            data = self.http.recv(1024)
+            data = self.http.recv(8192)
             if data:
                 print(
                     "[SSHRedirectToHTTP][http]  data received = " + str(data))
@@ -67,13 +67,13 @@ class tunnel:
         # accept connections from outside
         (ssh_socket, address) = ssh_con.accept()
         print("[ssh] connection ssh created")
-        data = ssh_socket.recv(1024)
+        data = ssh_socket.recv(8192)
         print("[ssh] data received = " + data.decode())
         http_con = client(self.host, self.portOut).initConnection()
         sshToHttp(ssh_socket, http_con, data).start()
 
         while True:
-            data = ssh_socket.recv(1024)
+            data = ssh_socket.recv(8192)
             if data:
                 print("[ssh] data received = " + str(data))
                 print("[http] sending the data")

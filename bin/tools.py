@@ -27,16 +27,16 @@ def packetHttpToSSH(packet):
     """
     Strips the http packet of the header and sends it to ssh
     """
-    return packet
-    # return createSSHPacketFromHml(packet)
+    # return packet
+    return createSSHPacketFromHml(packet)
 
 
 def packetSSHToHttp(packet, host):
     """
     Encapsulates a ssh packet with a http header
     """
-    return packet
-    # return createGetPacketFromSSH(packet)
+    # return packet
+    return createGetPacketFromSSH(packet)
 
 
 def processHttpRequests(packet, http_con, ssh_con):
