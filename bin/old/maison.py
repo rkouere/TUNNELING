@@ -4,7 +4,7 @@ Ecoute sur le port 80 les connections qui viennent à elle
 Envoie les packet du port 80 au ssh
 Envoie les packet du ssh vers le port 80
 """
-from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import sys
 import time
 import socket
@@ -12,30 +12,7 @@ from tools import client, httpPacket, processHttpRequests, proceesSSHRequests
 import threading
 import time
 
-class MyServer(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(bytes("<html><head><title>GET : Title goes here.</title></head>", "utf-8"))
-        self.wfile.write(bytes("<body><p>This is a test.</p>", "utf-8"))
-        self.wfile.write(bytes("<p>You accessed path: %s</p>" % self.path, "utf-8"))
-        self.wfile.write(bytes("</body></html>", "utf-8"))
 
-    def do_POST(self):
-        self.send_response(200)
-        
-        #self.send_header("Content-type", "text/html")
-        self.end_headers()
-"""
-        self.wfile.write(bytes("<html><head><title>POST :Title goes here.</title></head>", "utf-8"))
-        self.wfile.write(bytes("<body><p>This is a test.</p>", "utf-8"))
-        self.wfile.write(bytes("<p>You accessed path: %s</p>" % self.path, "utf-8"))
-        self.wfile.write(bytes("</body></html>", "utf-8"))
-"""
-
-
-	
 class sshToHttp(threading.Thread):
     """
     Redirects the connections from ssh client to http_socket
@@ -53,14 +30,13 @@ class sshToHttp(threading.Thread):
         """
         while True:
             # Receiving from ssh
-            data = self.ssh.recv(8192)
+            data = self.ssh.recv(1024)
             if data:
                 print("[SSHRedirectToHTTP][ssh] dataSSH = " + str(data))
                 try:
                     print("[SSHRedirectToHTTP][http] sendall")
                     time.sleep(0.01)
-                    
-		    #proceesSSHRequests(data, self.http)
+                    proceesSSHRequests(data, self.http)
                 except socket.error as e:
                     print(e)
                     break
@@ -81,23 +57,29 @@ class tunnel:
         self.portOut = portOut
 
     def init(self):
-        #  http_connection_ok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #  http_connection_ok.bind(("", self.portIn))
+        http_connection_ok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        http_connection_ok.bind(("", self.portIn))
         # become a server socket
-        #  http_connection_ok.listen(5)
-        
-	# accept connections from outside
-        # (http_socket, address) = http_connection_ok.accept()
-        print("port")
-        print(str(self.portOut))
-        myServer = HTTPServer((self.host, self.portOut), MyServer)
+        http_connection_ok.listen(5)
+        # accept connections from outside
+        (http_socket, address) = http_connection_ok.accept()
+        print("[http ] connection http created")
+        data = http_socket.recv(1024)
+        print("[http] data received = " + data.decode())
+        ssh_con = client(self.host, self.portOut).initConnection()
+        sshToHttp(http_socket, ssh_con, data).start()
+        while True:
+            data = http_socket.recv(1024)
 
-        try:
-            myServer.serve_forever()
-        except KeyboardInterrupt:
-            pass
+            if data:
+                print("[http] data received  = " + str(data))
+                print("[ssh] sending the data")
+                processHttpRequests(data, http_socket, ssh_con)
+                time.sleep(0.1)
+            else:
+                break
+        http_con.close()
 
-        myServer.server_close()
 
 if __name__ == "__main__":
     tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()

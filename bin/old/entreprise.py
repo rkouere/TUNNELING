@@ -10,12 +10,9 @@ import time
 import socket
 from tools import client, processHttpRequests, proceesSSHRequests
 import threading
-import http.client
-import urllib.request
 
-<<<<<<< HEAD
-=======
-class HttpToSSH(threading.Thread):
+
+class sshToHttp(threading.Thread):
     """
     Redirects the connections from ssh client to ssh_socket
     """
@@ -27,19 +24,30 @@ class HttpToSSH(threading.Thread):
             "[SSHRedirectToHTTP][http] send first message = "
             + str(first_data))
         proceesSSHRequests(first_data, self.http)
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
 
-def connectHttp():
-    
-    proxy_support = urllib.request.ProxyHandler({"http":"http://proxy.univ-lille1.fr:3128"})
-    opener = urllib.request.build_opener(proxy_support)
-    urllib.request.install_opener(opener)
+    def run(self):
+        """
+        Récupère le flux ssh et le renvoit au serveur
+        """
+        while True:
+            # Receiving from http
+            data = self.http.recv(1024)
+            if data:
+                print(
+                    "[SSHRedirectToHTTP][http]  data received = " + str(data))
+                try:
+                    print("[SSHRedirectToHTTP][ssh] sendall")
+                    time.sleep(0.01)
+                    processHttpRequests(data, self.http, self.ssh)
+                except socket.error as e:
+                    print(e)
+                    break
+            else:
+                print("========================")
+                print("CLOSE")
+                break
+        self.http.close()
 
-<<<<<<< HEAD
-    # html = urllib.request.urlopen("http://vps205524.ovh.net/", b'salut').read()
-    html = urllib.request.urlopen("http://vps205524.ovh.net/", b'salut').read()
-    print(html)
-=======
 
 class tunnel:
     """
@@ -59,13 +67,13 @@ class tunnel:
         # accept connections from outside
         (ssh_socket, address) = ssh_con.accept()
         print("[ssh] connection ssh created")
-        data = ssh_socket.recv(8192)
+        data = ssh_socket.recv(1024)
         print("[ssh] data received = " + data.decode())
         http_con = client(self.host, self.portOut).initConnection()
-        HttpToSSH(ssh_socket, http_con, data).start()
+        sshToHttp(ssh_socket, http_con, data).start()
 
         while True:
-            data = ssh_socket.recv(8192)
+            data = ssh_socket.recv(1024)
             if data:
                 print("[ssh] data received = " + str(data))
                 print("[http] sending the data")
@@ -74,7 +82,6 @@ class tunnel:
             else:
                 break
         http_con.close()
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
@@ -83,12 +90,4 @@ class tunnel:
 # If it is `__main__`, then we are running the program
 # standalone, and we run the main() function.
 if __name__ == "__main__":
-<<<<<<< HEAD
-=======
-    params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
-    headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    conn = http.client.HTTPConnection("vps205524.ovh.net")
-    conn.request("GET", "")#, params, headers)
->>>>>>> f0ddfe85ff6d2362a864ed538ba76fe5a97ba2b9
-    # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
-    connectHttp()
+    tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
