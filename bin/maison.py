@@ -105,7 +105,7 @@ class tunnel:
 
         print('Connected with ' + addr[0] + ':' + str(addr[1]))
         handler=handleRequestsUsing(conn)
-        myServer = HTTPServer((self.host, self.http_port), handler)
+        myServer = HTTPServer(('', self.http_port), handler)
         # start new thread takes 1st argument as a function name to be run,
         # second is the tuple of arguments to the function.
         #SSHTunnelClient(conn).start()
