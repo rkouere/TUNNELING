@@ -10,9 +10,10 @@ import socket
 from tools import processHttpRequests, client
 import threading
 import urllib.request
+import base64 as B64
 
-maison = "http://vps205524.ovh.net/"
-# maison = "http://192.168.12.249"
+# maison = "http://vps205524.ovh.net/"
+maison = "http://5.196.70.218"
 
 proxy = "http://proxy.univ-lille1.fr:3128"
 
@@ -31,7 +32,7 @@ def sendSSHRequestToMaison(data):
         # {"Cache-Control": "no-cache"})
         # req = urllib.request.Request("http://vps205524.ovh.net/")
         log("sending POST")
-        req = urllib.request.Request(maison, data)
+        req = urllib.request.Request(maison,B64.b64encode(data) )
 
         html = urllib.request.urlopen(req).read()
         print(html)
@@ -51,9 +52,12 @@ def getSSHRequestFromMaison():
         # {"Cache-Control": "no-cache"})
         # req = urllib.request.Request("http://vps205524.ovh.net/")
         req = urllib.request.Request(maison)
-        html = urllib.request.urlopen(req).read()
-        print(html)
-        return html
+        data = urllib.request.urlopen(req).read()
+        print(str(data))
+        if( '<html>' in str(data)):
+            return False    
+        else :
+            return data
     except urllib.error.HTTPError:
         return False
 
@@ -62,7 +66,9 @@ def sendToSSH(ssh_con, req):
     """
     Sends a request to ssh
     """
-    ssh_con.sendall(req)
+    print("REQ="+str(req))
+    ssh_con.sendall(B64.b64decode(req))
+
 
 
 
@@ -72,9 +78,9 @@ class sendFromSSH(threading.Thread):
         self.ssh_con = ssh_con
         print("thread started")
 
-    def run():
+    def run(self):
         while True:
-            data = ssh_socket.recv(1024)
+            data = self.ssh_con.recv(1024)
             if data:
                 print("[ssh] data received = " + str(data))
                 print("[POST] sending the data")
@@ -107,7 +113,7 @@ def init():
     ssh_con = client("localhost", 22).initConnection()
     log("connected to ssh")
     # we start a new thread to deal with the ssh connection
-    sendFromSSH(ssh_con)
+    sendFromSSH(ssh_con).start()
     # we send the request to ssh
     sendToSSH(ssh_con, req)
     # we loop with a GET request
