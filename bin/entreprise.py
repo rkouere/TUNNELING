@@ -1,7 +1,7 @@
 # ! /usr/bin/env python3
 # entreprise.py
 """
-Ecoute sur le port xxx les connections ssh
+Ecoute sur le port xxx les connections ssh    
 Renvoie les connections ssh vers le port 80 du client xxx
 Renvoie les connections du port 80 vers le ssh
 """
@@ -11,53 +11,59 @@ from tools import processHttpRequests, client
 import threading
 import urllib.request
 
+maison = "http://vps205524.ovh.net/"
+# maison = "http://192.168.12.249"
 
-class sshToHttp(threading.Thread):
-    """
-    Redirects the connections from ssh client to http_socket
-    """
-    def __init__(self, http_socket, ssh_client, first_data):
-        threading.Thread.__init__(self)
-        self.ssh = ssh_client
-        self.http = http_socket
-        print(
-            "[SSHRedirectToHTTP][ssh] send first message = " + str(first_data))
-        processHttpRequests(first_data, self.http, self.ssh)
-
-    def run(self):
-        """
-        Récupère le flux ssh et le renvoit au serveur
-        """
-        while True:
-            # Receiving from ssh
-            data = self.ssh.recv(8192)
-            if data:
-                print("[SSHRedirectToHTTP][ssh] dataSSH = " + str(data))
-                try:
-                    print("[SSHRedirectToHTTP][http] sendall")
-                    time.sleep(0.01)
-                    # proceesSSHRequests(data, self.http)
-                except socket.error as e:
-                    print(e)
-                    break
-            else:
-                print("============data=============")
-                print(data)
-                break
-        self.ssh.close()
+proxy = "http://proxy.univ-lille1.fr:3128"
 
 
-def sendGET(ssh_con):
+def log(message):
+    print("[maison] " + message)
+    
+
+def sendSSHRequestToMaison(data):
+    try:
+        proxy_support = urllib.request.ProxyHandler(
+            {"http": proxy})
+        opener = urllib.request.build_opener(proxy_support)
+        urllib.request.install_opener(opener)
+        # req = urllib.request.Request("http://vps205524.ovh.net/",
+        # {"Cache-Control": "no-cache"})
+        # req = urllib.request.Request("http://vps205524.ovh.net/")
+        log("sending POST")
+        req = urllib.request.Request(maison, data)
+
+        html = urllib.request.urlopen(req).read()
+        print(html)
+        return html
+    except urllib.error.HTTPError:
+        return False
+
+
+
+def getSSHRequestFromMaison():
+    try:
+        proxy_support = urllib.request.ProxyHandler(
+            {"http": proxy})
+        opener = urllib.request.build_opener(proxy_support)
+        urllib.request.install_opener(opener)
+        # req = urllib.request.Request("http://vps205524.ovh.net/",
+        # {"Cache-Control": "no-cache"})
+        # req = urllib.request.Request("http://vps205524.ovh.net/")
+        req = urllib.request.Request(maison)
+        html = urllib.request.urlopen(req).read()
+        print(html)
+        return html
+    except urllib.error.HTTPError:
+        return False
+
+
+def sendToSSH(ssh_con, req):
     """
-    Sends GET messages to the maison
-    If the message has content forward the message from the
-    HTTP response to ssh
-    Else sends another GET
+    Sends a request to ssh
     """
-    while True:
-        req = connectGET()
-        if req is not False:
-            sendToSSH(ssh_con, req)
+    ssh_con.sendall(req)
+
 
 
 class sendFromSSH(threading.Thread):
@@ -66,37 +72,19 @@ class sendFromSSH(threading.Thread):
         self.ssh_con = ssh_con
         print("thread started")
 
+    def run():
+        while True:
+            data = ssh_socket.recv(1024)
+            if data:
+                print("[ssh] data received = " + str(data))
+                print("[POST] sending the data")
+                sendSSHRequestToMaison(data)
+                time.sleep(0.1)
+            else:
+                break
+        ssh_socket.close()
 
-def sendToSSH(ssh_con, req):
-    """
-    At first sends the request to ssh
-    Waits for a message from ssh
-    Sends the message as a POST
-    Waits for a message from ssh
-    Sends the message as a POST
-    ...
-    """
-    print(req)
-    ssh_con.sendall(req)
 
-
-def connectGET(ssh_con=False):
-    try:
-        """
-        proxy_support = urllib.request.ProxyHandler(
-            {"http": "http://proxy.univ-lille1.fr:3128"})
-        opener = urllib.request.build_opener(proxy_support)
-        urllib.request.install_opener(opener)
-        """
-        # req = urllib.request.Request("http://vps205524.ovh.net/",
-        # {"Cache-Control": "no-cache"})
-        # req = urllib.request.Request("http://vps205524.ovh.net/")
-        req = urllib.request.Request("http://192.168.0.13")
-
-        html = urllib.request.urlopen(req).read()
-        return html
-    except urllib.error.HTTPError:
-        return False
 
 
 def init():
@@ -110,17 +98,23 @@ def init():
     - we send GET all the time and when we have a OK reply we send it to ssh
     """
     req = False
-    while req is False:
-        req = connectGET()
+    while req is False or req is None:
+        log("sending first request")
+        req = getSSHRequestFromMaison()
+        time.sleep(1)
 
     # initialise connection to ssh
     ssh_con = client("localhost", 22).initConnection()
+    log("connected to ssh")
     # we start a new thread to deal with the ssh connection
     sendFromSSH(ssh_con)
     # we send the request to ssh
     sendToSSH(ssh_con, req)
     # we loop with a GET request
-    sendGET(ssh_con)
+    while True:
+        data = getSSHRequestFromMaison()
+        if data is not False:
+            sendToSSH(ssh_con, data)
 
 # This is a Python's special:
 # The only way to tell wether we are running the program as a binary,
@@ -131,3 +125,4 @@ def init():
 if __name__ == "__main__":
     # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
     init()
+
