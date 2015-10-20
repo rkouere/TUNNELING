@@ -23,19 +23,22 @@ class MyServer(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-type", "application/octet-stream")
         
-        #self.send_header("Content-type", "text/html")
         
-        self.end_headers()
-
-        
-        data=self.ssh.recv(4096)
-        print("data="+str(data))
-        if data:
+	
+        self.ssh.settimeout(1.0)
+        try:
+            data = self.ssh.recv(4092)
+            print("data="+str(data))
+            self.send_header("Content-type", "application/octet-stream")
+            self.end_headers()
             self.wfile.write(data)
-        else :
+        except socket.timeout:
+            print( "No response from server")
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
             self.wfile.write(bytes("<html><head><title>GET : Title goes here.</title></head><body>TEST</body></html>", "utf-8"))
+        
 
     def do_POST(self):
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
