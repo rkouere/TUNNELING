@@ -13,10 +13,11 @@ import urllib.request
 import base64 as B64
 
 # maison = "http://vps205524.ovh.net/"
-maison = "http://5.196.70.218"
+#maison = "http://5.196.70.218"
+maison = "http://localhost"
 
-#proxy = "http://proxy.univ-lille1.fr:3128"
-proxy = "http://pcmt17:8008"
+proxy = "http://proxy.univ-lille1.fr:3128"
+#proxy = "http://pcmt17:8008"
 
 
 
@@ -26,8 +27,7 @@ def log(message):
 
 def sendSSHRequestToMaison(data):
     try:
-        proxy_support = urllib.request.ProxyHandler(
-            {"http": proxy})
+        proxy_support = urllib.request.ProxyHandler({"http": proxy})
         opener = urllib.request.build_opener(proxy_support)
         urllib.request.install_opener(opener)
         # req = urllib.request.Request("http://vps205524.ovh.net/",

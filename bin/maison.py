@@ -14,6 +14,7 @@ import time
 from io import StringIO
 import cgi
 from urllib.parse import parse_qs
+import base64 as B64
 
 class MyServer(BaseHTTPRequestHandler):
     
@@ -32,7 +33,7 @@ class MyServer(BaseHTTPRequestHandler):
             print("data="+str(data))
             self.send_header("Content-type", "application/octet-stream")
             self.end_headers()
-            self.wfile.write(data)
+            self.wfile.write(B64.b64encode(data))
         except socket.timeout:
             print( "No response from server")
             self.send_header("Content-type", "text/html")
@@ -42,21 +43,18 @@ class MyServer(BaseHTTPRequestHandler):
 
     def do_POST(self):
        	if(self.headers.get('Content-Type',False) ): 
-  	    ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+            ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
             print(str(ctype))
-            if ctype == 'multipart/form-data':
-              postvars = parse_multipart(self.rfile, pdict)
-            elif ctype == 'application/x-www-form-urlencoded':
+            if ctype == 'application/x-www-form-urlencoded':
               length = int(self.headers['Content-Length'])
               print(str(length))
-              postvars = parse_qs( self.rfile.read(length))#
+              data= B64.b64decode(self.rfile.read(length))
             else:
-              postvars = {}
+              print("parse error")
         
-            print(str(postvars))
-            data=postvars['data'.encode()][0]
+            print(str(data))
+            #data=postvars['data'.encode()][0]
             if data :
-               print(data.decode())
                self.ssh.sendall(data)
        
         self.send_response(200)
