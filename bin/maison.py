@@ -41,22 +41,23 @@ class MyServer(BaseHTTPRequestHandler):
         
 
     def do_POST(self):
-        ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
-        print(str(ctype))
-        if ctype == 'multipart/form-data':
-            postvars = parse_multipart(self.rfile, pdict)
-        elif ctype == 'application/x-www-form-urlencoded':
-            length = int(self.headers['Content-Length'])
-            print(str(length))
-            postvars = parse_qs( self.rfile.read(length))#
-        else:
-            postvars = {}
+       	if(self.headers.get('Content-Type',False) ): 
+  	    ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+            print(str(ctype))
+            if ctype == 'multipart/form-data':
+              postvars = parse_multipart(self.rfile, pdict)
+            elif ctype == 'application/x-www-form-urlencoded':
+              length = int(self.headers['Content-Length'])
+              print(str(length))
+              postvars = parse_qs( self.rfile.read(length))#
+            else:
+              postvars = {}
         
-        print(str(postvars))
-        data=postvars['data'.encode()][0]
-        if data :
-            print(data.decode())
-            self.ssh.sendall(data)
+            print(str(postvars))
+            data=postvars['data'.encode()][0]
+            if data :
+               print(data.decode())
+               self.ssh.sendall(data)
        
         self.send_response(200)
         

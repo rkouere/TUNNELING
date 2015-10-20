@@ -15,7 +15,9 @@ import base64 as B64
 # maison = "http://vps205524.ovh.net/"
 maison = "http://5.196.70.218"
 
-proxy = "http://proxy.univ-lille1.fr:3128"
+#proxy = "http://proxy.univ-lille1.fr:3128"
+proxy = "http://pcmt17:8008"
+
 
 
 def log(message):
@@ -54,7 +56,9 @@ def getSSHRequestFromMaison():
         req = urllib.request.Request(maison)
         data = urllib.request.urlopen(req).read()
         print(str(data))
-        if( '<html>' in str(data)):
+        if( len(data) < 1 ):
+            return False
+        elif ('<html>' in str(data)):
             return False    
         else :
             return data
