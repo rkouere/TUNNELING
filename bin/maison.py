@@ -27,7 +27,7 @@ class MyServer(BaseHTTPRequestHandler):
         
         
 	
-        self.ssh.settimeout(1.0)
+        self.ssh.settimeout(0.1)
         try:
             data = self.ssh.recv(4092)
             print("data="+str(data))
