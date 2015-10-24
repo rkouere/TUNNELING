@@ -1,40 +1,29 @@
-# ! /usr/bin/env python3
-# entreprise.py
+#  ! /usr/bin/env python3
+#  entreprise.py
 """
-Ecoute sur le port xxx les connections ssh    
+Ecoute sur le port xxx les connections ssh
 Renvoie les connections ssh vers le port 80 du client xxx
 Renvoie les connections du port 80 vers le ssh
 """
 import time
-import socket
-from tools import processHttpRequests, client
+from tools import client
 import threading
 import urllib.request
 import base64 as B64
 
-# maison = "http://vps205524.ovh.net/"
-#maison = "http://5.196.70.218"
+#  maison = "http://vps205524.ovh.net/"
+# maison = "http://5.196.70.218"
 maison = "http://localhost"
-
-proxy = "http://proxy.univ-lille1.fr:3128"
-#proxy = "http://pcmt17:8008"
-
 
 
 def log(message):
     print("[maison] " + message)
-    
+
 
 def sendSSHRequestToMaison(data):
     try:
-        proxy_support = urllib.request.ProxyHandler({"http": proxy})
-        opener = urllib.request.build_opener(proxy_support)
-        urllib.request.install_opener(opener)
-        # req = urllib.request.Request("http://vps205524.ovh.net/",
-        # {"Cache-Control": "no-cache"})
-        # req = urllib.request.Request("http://vps205524.ovh.net/")
         log("sending POST")
-        req = urllib.request.Request(maison,B64.b64encode(data) )
+        req = urllib.request.Request(maison, B64.b64encode(data))
 
         html = urllib.request.urlopen(req).read()
         print(html)
@@ -43,24 +32,16 @@ def sendSSHRequestToMaison(data):
         return False
 
 
-
 def getSSHRequestFromMaison():
     try:
-        proxy_support = urllib.request.ProxyHandler(
-            {"http": proxy})
-        opener = urllib.request.build_opener(proxy_support)
-        urllib.request.install_opener(opener)
-        # req = urllib.request.Request("http://vps205524.ovh.net/",
-        # {"Cache-Control": "no-cache"})
-        # req = urllib.request.Request("http://vps205524.ovh.net/")
         req = urllib.request.Request(maison)
         data = urllib.request.urlopen(req).read()
         print(str(data))
-        if( len(data) < 1 ):
+        if(len(data) < 1):
             return False
         elif ('<html>' in str(data)):
-            return False    
-        else :
+            return False
+        else:
             return data
     except urllib.error.HTTPError:
         return False
@@ -72,8 +53,6 @@ def sendToSSH(ssh_con, req):
     """
     print("REQ="+str(req))
     ssh_con.sendall(B64.b64decode(req))
-
-
 
 
 class sendFromSSH(threading.Thread):
@@ -92,9 +71,7 @@ class sendFromSSH(threading.Thread):
                 time.sleep(0.1)
             else:
                 break
-        ssh_socket.close()
-
-
+        self.ssh.con.close()
 
 
 def init():
@@ -113,26 +90,25 @@ def init():
         req = getSSHRequestFromMaison()
         time.sleep(1)
 
-    # initialise connection to ssh
+    #  initialise connection to ssh
     ssh_con = client("localhost", 22).initConnection()
     log("connected to ssh")
-    # we start a new thread to deal with the ssh connection
+    #  we start a new thread to deal with the ssh connection
     sendFromSSH(ssh_con).start()
-    # we send the request to ssh
+    #  we send the request to ssh
     sendToSSH(ssh_con, req)
-    # we loop with a GET request
+    #  we loop with a GET request
     while True:
         data = getSSHRequestFromMaison()
         if data is not False:
             sendToSSH(ssh_con, data)
 
-# This is a Python's special:
-# The only way to tell wether we are running the program as a binary,
-# or if it was imported as a module is to check the content of
-# __name__.
-# If it is `__main__`, then we are running the program
-# standalone, and we run the main() function.
+#  This is a Python's special:
+#  The only way to tell wether we are running the program as a binary,
+#  or if it was imported as a module is to check the content of
+#  __name__.
+#  If it is `__main__`, then we are running the program
+#  standalone, and we run the main() function.
 if __name__ == "__main__":
-    # tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
+    #  tunnel(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).init()
     init()
-
