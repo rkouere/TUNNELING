@@ -1,8 +1,9 @@
 # TUNNELING
 
-# Usage
-    + Maison : "vps205524.ovh.net 8001 80"
-    + Entreprise : "localhost 80 22"
+# Usage example
+    + Maison : sudo python3 maison.py localhost 80 9800
+               ssh localhost 9800
+    + Entreprise : python3 entreprise.py
  
 
 Bonnes info
