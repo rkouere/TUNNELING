@@ -7,14 +7,26 @@ import base64
 hardReturn = "\r\n"
 
 
-def encrypt(key, plaintext):
-    cipher = XOR.new(key)
-    return base64.b64encode(cipher.encrypt(plaintext))
+class crypto():
+    """
+    Thanks poida
+    http://stackoverflow.com/questions/2490334/simple-way-to-encode-a-string-according-to-a-passwordself
+    Usage :
+    >>> encrypt('notsosecretkey', 'Attack at dawn!')
+    'LxsAEgwYRQIGRRAKEhdP'
 
+    >>> decrypt('notsosecretkey', encrypt('notsosecretkey', 'Attack at dawn!'))
+    'Attack at dawn!'
+    """
+    secret_key = "maggle"
 
-def decrypt(key, ciphertext):
-    cipher = XOR.new(key)
-    return cipher.decrypt(base64.b64decode(ciphertext))
+    def encrypt(self, key, plaintext):
+        cipher = XOR.new(key)
+        return base64.b64encode(cipher.encrypt(plaintext))
+
+    def decrypt(self, key, ciphertext):
+        cipher = XOR.new(key)
+        return cipher.decrypt(base64.b64decode(ciphertext))
 
 
 class client:
