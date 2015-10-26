@@ -18,23 +18,26 @@ class crypto():
     >>> decrypt('notsosecretkey', encrypt('notsosecretkey', 'Attack at dawn!'))
     'Attack at dawn!'
     """
-    secret_key = "maggle"
+    def __init__(self):
+        self.key = "maggle"
 
-    def encrypt(self, key, plaintext):
-        cipher = XOR.new(key)
+    def encrypt(self, plaintext):
+        cipher = XOR.new(self.key)
         return base64.b64encode(cipher.encrypt(plaintext))
 
-    def decrypt(self, key, ciphertext):
-        cipher = XOR.new(key)
+    def decrypt(self, ciphertext):
+        cipher = XOR.new(self.key)
         return cipher.decrypt(base64.b64decode(ciphertext))
 
 
 def encode_data(data):
-    return base64.b64encode(data)
+    # return base64.b64encode(data)
+    return crypto().encrypt(data)
 
 
 def decode_data(data):
-    return base64.b64decode(data)
+    # return base64.b64decode(data)
+    return crypto().decrypt(data)
 
 
 class client:
