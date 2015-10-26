@@ -9,8 +9,8 @@ import time
 from tools import client
 import threading
 import urllib.request
-import base64 as B64
 import sys
+from tools import encode_data, decode_data
 
 #  maison = "http://vps205524.ovh.net/"
 # maison = "http://5.196.70.218"
@@ -27,10 +27,10 @@ def log(message):
 def sendSSHRequestToMaison(data, maison):
     try:
         log("sending POST")
-        data_b64 = B64.b64encode(data)
-        req = urllib.request.Request(maison, data_b64)
+        data_encoded = encode_data(data)
+        req = urllib.request.Request(maison, data_encoded)
         req.add_header("User-Agent", user_agent)
-        req.add_header("Content-length", len(data_b64))
+        req.add_header("Content-length", len(data_encoded))
 
         html = urllib.request.urlopen(req).read()
         print(html)
@@ -65,7 +65,7 @@ def sendToSSH(ssh_con, req):
     Sends a request to ssh
     """
     print("REQ="+str(req))
-    ssh_con.sendall(B64.b64decode(req))
+    ssh_con.sendall(decode_data(req))
 
 
 class sendFromSSH(threading.Thread):

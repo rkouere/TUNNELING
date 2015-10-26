@@ -29,6 +29,14 @@ class crypto():
         return cipher.decrypt(base64.b64decode(ciphertext))
 
 
+def encode_data(data):
+    return base64.b64encode(data)
+
+
+def decode_data(data):
+    return base64.b64decode(data)
+
+
 class client:
     def __init__(self, host, port, debug=False):
         self.host = host

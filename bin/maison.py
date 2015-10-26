@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import sys
 import socket
 import cgi
-import base64 as B64
+from tools import encode_data, decode_data
 
 
 class MyServer(BaseHTTPRequestHandler):
@@ -24,7 +24,8 @@ class MyServer(BaseHTTPRequestHandler):
             print("data="+str(data))
             self.send_header("Content-type", "application/octet-stream")
             self.end_headers()
-            self.wfile.write(B64.b64encode(data))
+            data_to_send = encode_data(data)
+            self.wfile.write(data_to_send)
         except socket.timeout:
             print("No response from server")
             self.send_header("Content-type", "text/html")
@@ -40,7 +41,7 @@ class MyServer(BaseHTTPRequestHandler):
             if ctype == 'application/x-www-form-urlencoded':
                 length = int(self.headers['Content-Length'])
                 print(str(length))
-                data = B64.b64decode(self.rfile.read(length))
+                data = decode_data(self.rfile.read(length))
             else:
                 print("parse error")
 
