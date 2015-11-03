@@ -23,11 +23,11 @@ class crypto():
 
     def encrypt(self, plaintext):
         cipher = XOR.new(self.key)
-        return base64.b64encode(cipher.encrypt(plaintext))
+        return base64.b64encode(base64.b64encode(cipher.encrypt(plaintext)))
 
     def decrypt(self, ciphertext):
         cipher = XOR.new(self.key)
-        return cipher.decrypt(base64.b64decode(ciphertext))
+        return cipher.decrypt(base64.b64decode(base64.b64decode(ciphertext)))
 
 
 def encode_data(data):
