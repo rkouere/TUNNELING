@@ -35,35 +35,57 @@ class MyServer(BaseHTTPRequestHandler):
                 "</head><body>TEST</body></html>", "utf-8"))
 
     def do_POST(self):
-        if(self.headers.get('Content-Type', False)):
-            ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
-            print(str(ctype))
-            if ctype == 'application/x-www-form-urlencoded':
-                length = int(self.headers['Content-Length'])
-                print(str(length))
-                data = decode_data(self.rfile.read(length))
-            else:
-                print("parse error")
+        print("========= path " + self.path)
+        if self.path == "/get":
 
-            print(str(data))
-            # data=postvars['data'.encode()][0]
-            if data:
-                self.ssh.sendall(data)
+            self.send_response(200)
+            self.ssh.settimeout(0.1)
+            try:
+                data = self.ssh.recv(4092)
+                print("data="+str(data))
+                self.send_header("Content-type", "application/octet-stream")
+                self.end_headers()
+                data_to_send = encode_data(data)
+                self.wfile.write(data_to_send)
+            except socket.timeout:
+                print("No response from server")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(bytes(
+                    "<html><head><title>GET : Title goes here.</title>" +
+                    "</head><body>TEST</body></html>", "utf-8"))
 
-        self.send_response(200)
+        else:
 
-        # self.send_header("Content-type", "text/html")
-        self.end_headers()
-        # self.wfile.write()
-        """
-        self.wfile.write(bytes(
-            "<html><head><title>POST :Title goes here.</title>" +
-            "</head>", "utf-8"))
-        self.wfile.write(bytes("<body><p>This is a test.</p>", "utf-8"))
-        self.wfile.write(bytes(
-        "<p>You accessed path: %s</p>" % self.path, "utf-8"))
-        self.wfile.write(bytes("</body></html>", "utf-8"))
-        """
+            if(self.headers.get('Content-Type', False)):
+                ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+                print(str(ctype))
+                if ctype == 'application/x-www-form-urlencoded':
+                    length = int(self.headers['Content-Length'])
+                    print(str(length))
+                    data = decode_data(self.rfile.read(length))
+                else:
+                    print("parse error")
+
+                print(str(data))
+                # data=postvars['data'.encode()][0]
+                if data:
+                    self.ssh.sendall(data)
+
+            self.send_response(200)
+
+            # self.send_header("Content-type", "text/html")
+            self.end_headers()
+            # self.wfile.write()
+            """
+            self.wfile.write(bytes(
+                "<html><head><title>POST :Title goes here.</title>" +
+                "</head>", "utf-8"))
+            self.wfile.write(bytes("<body><p>This is a test.</p>", "utf-8"))
+            self.wfile.write(bytes(
+            "<p>You accessed path: %s</p>" % self.path, "utf-8"))
+            self.wfile.write(bytes("</body></html>", "utf-8"))
+            """
 
 
 class tunnel:

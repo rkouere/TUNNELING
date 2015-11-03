@@ -28,7 +28,7 @@ def sendSSHRequestToMaison(data, maison):
     try:
         log("sending POST")
         data_encoded = encode_data(data)
-        req = urllib.request.Request(maison, data_encoded)
+        req = urllib.request.Request(maison + "/send", data_encoded)
         req.add_header("User-Agent", user_agent)
         req.add_header("Content-length", len(data_encoded))
 
@@ -46,7 +46,7 @@ def getSSHRequestFromMaison(maison):
     Maison returs a ssh base 64 message if there is something ssh-y to do
     """
     try:
-        req = urllib.request.Request(maison)
+        req = urllib.request.Request(maison + "/get", b"salut")
         req.add_header("User-Agent", user_agent)
         data = urllib.request.urlopen(req).read()
         print(str(data))
