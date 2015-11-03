@@ -11,6 +11,7 @@ import threading
 import urllib.request
 import sys
 from tools import encode_data, decode_data
+import random
 
 #  maison = "http://vps205524.ovh.net/"
 # maison = "http://5.196.70.218"
@@ -26,9 +27,10 @@ def log(message):
 
 def sendSSHRequestToMaison(data, maison):
     try:
+        rand = random.randint(0, 100000)
         log("sending POST")
         data_encoded = encode_data(data)
-        req = urllib.request.Request(maison + "/send", data_encoded)
+        req = urllib.request.Request(maison + "/send" + str(rand), data_encoded)
         req.add_header("User-Agent", user_agent)
         req.add_header("Content-length", len(data_encoded))
 
@@ -46,7 +48,8 @@ def getSSHRequestFromMaison(maison):
     Maison returs a ssh base 64 message if there is something ssh-y to do
     """
     try:
-        req = urllib.request.Request(maison + "/get", b"salut")
+        rand = random.randint(0, 100000)
+        req = urllib.request.Request(maison + "/get" + str(rand), b"salut")
         req.add_header("User-Agent", user_agent)
         data = urllib.request.urlopen(req).read()
         print(str(data))

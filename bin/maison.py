@@ -36,7 +36,7 @@ class MyServer(BaseHTTPRequestHandler):
 
     def do_POST(self):
         print("========= path " + self.path)
-        if self.path == "/get":
+        if self.path.find("/get") != -1:
 
             self.send_response(200)
             self.ssh.settimeout(0.1)
