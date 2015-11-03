@@ -73,9 +73,14 @@ class MyServer(BaseHTTPRequestHandler):
                     self.ssh.sendall(data)
 
             self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(bytes(
+                "<html><head><title>GET : Title goes here.</title>" +
+                "</head><body>TEST</body></html>", "utf-8"))
 
             # self.send_header("Content-type", "text/html")
-            self.end_headers()
+            #self.end_headers()
             # self.wfile.write()
             """
             self.wfile.write(bytes(
