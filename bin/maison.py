@@ -16,15 +16,30 @@ class MyServer(BaseHTTPRequestHandler):
         self.ssh = ssh_socket
         BaseHTTPRequestHandler.__init__(self, *args)
 
-    def do_GET(self):
+    def do_POST(self):
+        print("========= path " + self.path)
+        if(self.headers.get('Content-Type', False)):
+            ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+            if ctype == 'application/x-www-form-urlencoded':
+                length = int(self.headers['Content-Length'])
+                print(str(length))
+                data = decode_data(self.rfile.read(length))
+            else:
+                print("parse error")
+
+            if data is not False and len(data)>0:
+                print("[FROM POST] data clear ="+str(data))
+                self.ssh.sendall(data)
+
         self.send_response(200)
-        self.ssh.settimeout(0.1)
+        self.ssh.settimeout(1)
         try:
             data = self.ssh.recv(4092)
-            print("data="+str(data))
-            self.send_header("Content-type", "application/octet-stream")
-            self.end_headers()
             data_to_send = encode_data(data)
+            print("[FROM SSH]="+str(data))
+            self.send_header("Content-type", "application/octet-stream")
+            self.send_header("Content-length",len(data_to_send))
+            self.end_headers()
             self.wfile.write(data_to_send)
         except socket.timeout:
             print("No response from server")
@@ -33,65 +48,6 @@ class MyServer(BaseHTTPRequestHandler):
             self.wfile.write(bytes(
                 "<html><head><title>GET : Title goes here.</title>" +
                 "</head><body>TEST</body></html>", "utf-8"))
-
-    def do_POST(self):
-        print("========= path " + self.path)
-        if self.path.find("/get") != -1:
-
-            self.send_response(200)
-            self.ssh.settimeout(0.1)
-            try:
-                data = self.ssh.recv(4092)
-                print("data="+str(data))
-                self.send_header("Content-type", "application/octet-stream")
-                self.end_headers()
-                data_to_send = encode_data(data)
-                self.wfile.write(data_to_send)
-            except socket.timeout:
-                print("No response from server")
-                self.send_header("Content-type", "text/html")
-                self.end_headers()
-                self.wfile.write(bytes(
-                    "<html><head><title>GET : Title goes here.</title>" +
-                    "</head><body>TEST</body></html>", "utf-8"))
-
-        else:
-
-            if(self.headers.get('Content-Type', False)):
-                ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
-                print(str(ctype))
-                if ctype == 'application/x-www-form-urlencoded':
-                    length = int(self.headers['Content-Length'])
-                    print(str(length))
-                    data = decode_data(self.rfile.read(length))
-                else:
-                    print("parse error")
-
-                print(str(data))
-                # data=postvars['data'.encode()][0]
-                if data:
-                    self.ssh.sendall(data)
-
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(bytes(
-                "<html><head><title>GET : Title goes here.</title>" +
-                "</head><body>TEST</body></html>", "utf-8"))
-
-            # self.send_header("Content-type", "text/html")
-            #self.end_headers()
-            # self.wfile.write()
-            """
-            self.wfile.write(bytes(
-                "<html><head><title>POST :Title goes here.</title>" +
-                "</head>", "utf-8"))
-            self.wfile.write(bytes("<body><p>This is a test.</p>", "utf-8"))
-            self.wfile.write(bytes(
-            "<p>You accessed path: %s</p>" % self.path, "utf-8"))
-            self.wfile.write(bytes("</body></html>", "utf-8"))
-            """
-
 
 class tunnel:
     """
@@ -117,21 +73,12 @@ class tunnel:
         sock.listen(10)
 
         print('Socket now listening')
-        # Function for handling connections.
-        # This will be used to create threads
-        # now keep talking with the client
-        # while 1:
-        # wait to accept a connection - blocking call
+        
         conn, addr = sock.accept()
 
         print('Connected with ' + addr[0] + ':' + str(addr[1]))
         handler = handleRequestsUsing(conn)
         myServer = HTTPServer(('', self.http_port), handler)
-        # start new thread takes 1st argument as a function name to be run,
-        # second is the tuple of arguments to the function.
-        # SSHTunnelClient(conn).start()
-        # start_new_thread(clientthread, (conn,))
-
         try:
             myServer.serve_forever()
         except KeyboardInterrupt:

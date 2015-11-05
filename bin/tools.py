@@ -31,12 +31,12 @@ class crypto():
 
 
 def encode_data(data):
-    # return base64.b64encode(data)
+    #return base64.b64encode(data)
     return crypto().encrypt(data)
 
 
 def decode_data(data):
-    # return base64.b64decode(data)
+    #return base64.b64decode(data)
     return crypto().decrypt(data)
 
 
