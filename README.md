@@ -1,5 +1,13 @@
 # TUNNELING
 
+# A faire
+
+Ajouter du padding à la fin des messages
+
+Changer le type de packet (audio ?)
+
+Faire en sorte que l'on puisse logger les accès pour parrer aux attaques qui renvoient des POST
+
 # Usage example
     + Maison : sudo python3 maison.py localhost 80 9800
                ssh localhost 9800
