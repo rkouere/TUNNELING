@@ -29,16 +29,6 @@ class tests:
     def __init__(self):
         self.url = "http://nicolasechallier.com/proxy/home.php"
 
-    def postBasic(self):
-        """
-        Testing that a normal post works
-        """
-        key = "coucou"
-        value = 12524
-        r = self.__send_request__(self.url, key, value)
-        test_name = "[" + get_name_doc() + "] "
-        self.__checkReply__(test_name, r, key, value)
-
     def __send_request__(self, url, key, value):
         """
         Sends a post request
@@ -68,6 +58,16 @@ class tests:
 
         if r.text != value_tested:
             logging.info(test_name + "text replied is not ok")
+
+    def postBasic(self):
+        """
+        Testing that a normal post works
+        """
+        key = "coucou"
+        value = 12524
+        r = self.__send_request__(self.url, key, value)
+        test_name = "[" + get_name_doc() + "] "
+        self.__checkReply__(test_name, r, key, value)
 
     def postB64(self):
         """
