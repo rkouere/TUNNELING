@@ -98,11 +98,20 @@ class tests:
         key = "coucou"
         value = 1
         for i in range(0, number_of_requests):
-            if i % 20 is 0:
+            try:
+                if i % 50 is 0:
+                    logging.info(
+                        test_name + "sent {} requests to the server".format(i))
+                r = self.__send_request__(
+                    self.url,  key, value)
+                self.__checkReply__(test_name, r, key, value)
+            except requests.exceptions.ConnectionError:
                 logging.info(
-                    test_name + "sent {} requests to the server".format(i))
-            r = self.__send_request__("http://vps205524.ovh.net",  key, value)
-            self.__checkReply__(test_name, r, key, value)
+                    bcolors.WARNING +
+                    test_name +
+                    "nous avons été viré car trop de connections" +
+                    bcolors.ENDC)
+                break
 
 
 def getUserMethodsFromClass(c):
