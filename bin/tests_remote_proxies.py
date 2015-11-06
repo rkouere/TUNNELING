@@ -93,6 +93,9 @@ class tests:
         key = "coucou"
         value = 1
         for i in range(0, number_of_requests):
+            if i % 20 is 0:
+                logging.info(
+                    test_name + "sent {} requests to the server".format(i))
             r = self.__send_request__(self.url, key, value)
             self.__checkReply__(test_name, r, key, value)
 
