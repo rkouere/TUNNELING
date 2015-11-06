@@ -47,21 +47,14 @@ class tests:
         """
         Test proxy accepts b64 type requests
         """
-        base64message = b64encode(b"salut")
+        key = "coucou"
+        value = b64encode(b"salut")
 
         test_name = "[" + get_name_doc() + "] "
         r = requests.post(
             self.url,
-            data={"coucou": base64message})
- 
-        if r.status_code is not 200:
-            logging.info(test_name + "did not reply with 200")
-
-        if r.reason != "OK":
-            logging.info(test_name, "reason is not \"OK\"")
-
-        if r.text != 'coucou=12524':
-            logging.info(test_name + "text replied is not ok")
+            data={key: value})
+        self.__checkReply__(test_name, r, key, value)
 
 
 def getUserMethodsFromClass(c):
