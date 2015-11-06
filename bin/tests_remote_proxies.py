@@ -132,6 +132,7 @@ def callMethod(o, name):
 
 def runUserMethods(user_class, methods):
     for m in methods:
+        logging.info("running method " + m)
         callMethod(user_class, m)
 
 
@@ -143,8 +144,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--verbose', '-v', action="store_true",
                         help='Toogle verbose mode')
-
+    parser.add_argument('--methods', '-m', default="all", type=str, nargs='*',
+                        help='The list of tests. ' +
+                        'Available are {}. [default: all]'.format(
+                            methods + ['all', 'none']))
     args = parser.parse_args()
+
+    print(args.methods)
+    # if we don't want to use all the methods
+    if args.methods != "all":
+        methods = args.methods
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
