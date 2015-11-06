@@ -30,3 +30,6 @@
 
 # Debug files
 *.dSYM/
+
+#pyc qui servent à rien
+*.pyc
