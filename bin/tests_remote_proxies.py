@@ -86,6 +86,17 @@ class tests:
             self.url, key, value, headers=self.user_agent_header)
         self.__checkReply__(test_name, r, key, value)
 
+    def test_octet_stream(self):
+        test_name = "[" + get_name_doc() + "] "
+        key = "coucou"
+        value = 12524
+        headers = self.user_agent_header
+        headers["Content-Type"] = 'application/octet-stream'
+        logging.debug(test_name + "header = {}".format(headers))
+        r = self.__send_request__(
+            self.url, key, value, headers=headers)
+        self.__checkReply__(test_name, r, key, value)
+
     def postB64(self):
         """
         Test proxy accepts b64 type requests
@@ -178,6 +189,6 @@ if __name__ == "__main__":
 
     requests_logger = logging.getLogger('requests.packages.urllib3')
     requests_logger.setLevel(logging.CRITICAL)
-    
+
     tests = tests()
     runUserMethods(tests, methods)
