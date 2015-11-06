@@ -5,6 +5,9 @@ import inspect
 
 
 def get_name_doc():
+    """
+    Returns the name of the current method
+    """
     outerframe = inspect.currentframe().f_back
     name = outerframe.f_code.co_name
     return name
