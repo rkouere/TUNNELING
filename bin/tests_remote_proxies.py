@@ -153,6 +153,7 @@ class tests:
                     "nous avons été viré car trop de connections" +
                     bcolors.ENDC)
                 break
+            value += 1
 
 
 def getUserMethodsFromClass(c):
