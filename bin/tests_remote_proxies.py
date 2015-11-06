@@ -35,9 +35,7 @@ class tests:
         """
         key = "coucou"
         value = 12524
-        r = requests.post(
-            self.url,
-            data={key: value})
+        r = self.__send_request__(self.url, key, value)
         test_name = "[" + get_name_doc() + "] "
         self.__checkReply__(test_name, r, key, value)
 
@@ -79,9 +77,7 @@ class tests:
         value = b64encode(b"salut")
 
         test_name = "[" + get_name_doc() + "] "
-        r = requests.post(
-            self.url,
-            data={key: value})
+        r = self.__send_request__(self.url, key, value)
 
         logging.debug(test_name + "key = {}".format(key))
         logging.debug(test_name + "value = {}".format(value))
