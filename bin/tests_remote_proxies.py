@@ -84,6 +84,18 @@ class tests:
         logging.debug(test_name + "reply = {}".format(r.text))
         self.__checkReply__(test_name, r, key, value.decode())
 
+    def requestOverload(self):
+        """
+        Tests that a proxy does not stop a high level of requests per seconds
+        """
+        test_name = "[" + get_name_doc() + "] "
+        number_of_requests = 1000
+        key = "coucou"
+        value = 1
+        for i in range(0, number_of_requests):
+            r = self.__send_request__(self.url, key, value)
+            self.__checkReply__(test_name, r, key, value)
+
 
 def getUserMethodsFromClass(c):
     """
@@ -117,6 +129,10 @@ if __name__ == "__main__":
 
     else:
         logging.basicConfig(level=logging.INFO)
+
+    # stops logging info at each request
+    urllib3_logger = logging.getLogger('urllib3')
+    urllib3_logger.setLevel(logging.CRITICAL)
 
     methods = getUserMethodsFromClass(tests)
     tests = tests()
