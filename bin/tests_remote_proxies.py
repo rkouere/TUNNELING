@@ -2,7 +2,7 @@ import requests
 import argparse
 import logging
 import inspect
-from base64 import b64encode, b64decode
+from base64 import b64encode  # , b64decode
 
 
 class bcolors:
@@ -136,6 +136,10 @@ def runUserMethods(user_class, methods):
 
 
 if __name__ == "__main__":
+    # get names of methods
+    methods = getUserMethodsFromClass(tests)
+
+    # manage arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--verbose', '-v', action="store_true",
                         help='Toogle verbose mode')
@@ -151,6 +155,5 @@ if __name__ == "__main__":
     urllib3_logger = logging.getLogger('urllib3')
     urllib3_logger.setLevel(logging.CRITICAL)
 
-    methods = getUserMethodsFromClass(tests)
     tests = tests()
     runUserMethods(tests, methods)
