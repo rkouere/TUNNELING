@@ -43,7 +43,6 @@ class tests:
         """
         Checks that the reply is OK
         """
-        test_name = "[" + get_name_doc() + "] "
         value_tested = key + "=" + str(value)
         logging.debug(test_name + "key = {}".format(key))
         logging.debug(test_name + "value = {}".format(value))
@@ -102,7 +101,7 @@ class tests:
             if i % 20 is 0:
                 logging.info(
                     test_name + "sent {} requests to the server".format(i))
-            r = self.__send_request__(self.url, key, value)
+            r = self.__send_request__("http://vps205524.ovh.net",  key, value)
             self.__checkReply__(test_name, r, key, value)
 
 
