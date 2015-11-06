@@ -28,15 +28,19 @@ def get_name_doc():
 class tests:
     def __init__(self):
         self.url = "http://nicolasechallier.com/proxy/home.php"
+        self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/"
+        self.user_agent += "537.36 (KHTML, like Gecko) Chrome/45.0.2454.101"
+        self.user_agent += " Safari/537.36"
 
     def __send_request__(self, url, key, value):
         """
         Sends a post request
         Returns the request
         """
+        user_headers = {"user-agent": self.user_agent}
         r = requests.post(
             url,
-            data={key: value})
+            data={key: value}, headers=user_headers)
         return r
 
     def __checkReply__(self, test_name, r, key, value):
@@ -150,7 +154,6 @@ if __name__ == "__main__":
                             methods + ['all', 'none']))
     args = parser.parse_args()
 
-    print(args.methods)
     # if we don't want to use all the methods
     if args.methods != "all":
         methods = args.methods
