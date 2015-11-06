@@ -63,40 +63,21 @@ def getSSHRequestFromMaison(maison):
     except urllib.error.HTTPError:
         return False
 
-
 def sendToSSH(ssh_con, req):
     """
     Sends a request to ssh
     """
-    clear_data=decode_data(req)
-    print("[FROM WEB] clear data ="+str(clear_data))
-   
-    ssh_con.sendall(clear_data)
 
+    time_now,clear_data=decode_data(req)
+    print("[FROM WEB]"+str(sendToSSH.last_time)+" "+str(time_now)+" clear data ="+str(clear_data))
+    if(time_now > sendToSSH.last_time):
+        ssh_con.sendall(clear_data)
+        sendToSSH.last_time=time_now
 
+sendToSSH.last_time=0
 
 def init(maison):
     """
-
-class sendFromSSH(threading.Thread):
-    def __init__(self, ssh_con, maison):
-        threading.Thread.__init__(self)
-        self.ssh_con = ssh_con
-        self.maison = maison
-        print("thread started")
-
-    def run(self):
-        while True:
-            data = self.ssh_con.recv(1024)
-            if data:
-                print("[ssh] data received = " + str(data))
-                print("[POST] sending the data")
-                sendSSHRequestToMaison(data, self.maison)
-                time.sleep(0.1)
-            else:
-                break
-        self.ssh.con.close()
-
     Sends packets to maison all the time
     When a packet has arrived
     - we initiate a new socket with the ssh server
@@ -115,25 +96,21 @@ class sendFromSSH(threading.Thread):
     ssh_con = client("localhost", 22).initConnection()
     log("connected to ssh")
     #  we start a new thread to deal with the ssh connection
-    #sendFromSSH(ssh_con, maison).start()
     
     #  we send the request to ssh
     sendToSSH(ssh_con, req)
     ssh_con.settimeout(1)
     #  we loop with a GET request
     while True:
-        #sendToSSH(ssh_con,req)
         try:
             ssh_data=ssh_con.recv(4096)
-        except:
+        except :
             ssh_data=b''
         #if data:
         print("[FROM SSH] clear data received = " + str(ssh_data))
         print("[POST] sending the data")
         req=sendSSHRequestToMaison(ssh_data, maison)
         time.sleep(0.1)
-        
-        #req = getSSHRequestFromMaison(maison)
 
         if req is not False and len(req)>0 and not(('<html>') in str(req)):
             print("REQQ="+str(req))

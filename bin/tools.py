@@ -3,6 +3,10 @@ import socket   # for sockets
 import sys
 from Crypto.Cipher import XOR
 import base64
+import struct
+import random
+import time
+import hashlib
 
 hardReturn = "\r\n"
 
@@ -32,13 +36,49 @@ class crypto():
 
 def encode_data(data):
     #return base64.b64encode(data)
-    return crypto().encrypt(data)
+    
+    
+    print("[send time ]="+str(encode_data.num))
+    
+    len_data=len(data)
+    len_nn=random.randint(1,8192-len_data)
 
+    header=struct.pack("<III",encode_data.num,len_data,len_nn)
+    
+    encode_data.num+=1
+
+    noisynoise=random.getrandbits(len_nn*8)
+
+    
+    all_data=header+data+(noisynoise.to_bytes(len_nn,'big'))
+   
+    print("len(all_data)="+str(len(all_data)))
+    signature=hashlib.sha256(all_data).hexdigest()
+    print("SIGNATURE="+signature)
+    all_data=all_data+signature.encode('ascii')
+    return crypto().encrypt(all_data)
+encode_data.num=1
 
 def decode_data(data):
     #return base64.b64decode(data)
-    return crypto().decrypt(data)
+    if len(data)>0:
+        clear_data=crypto().decrypt(data)
 
+        time_now,len_data,len_nn=struct.unpack("<III",clear_data[:12])
+    
+        print("[receive time ]="+str(time_now))
+    
+        ssh_data=clear_data[12:12+len_data]
+        
+        signature=(clear_data[12+len_data+len_nn:]).decode()
+    
+        print("len(clear_data)="+str(len(clear_data[:-64])))
+         
+        verif_sign=hashlib.sha256(clear_data[:-64]).hexdigest()
+
+        if signature == verif_sign:
+            return time_now,ssh_data
+    return 0,''
 
 class client:
     def __init__(self, host, port, debug=False):

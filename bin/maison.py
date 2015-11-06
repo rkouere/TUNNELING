@@ -14,16 +14,21 @@ from tools import encode_data, decode_data
 class MyServer(BaseHTTPRequestHandler):
     def __init__(self, ssh_socket, *args):
         self.ssh = ssh_socket
+        self.last_time=0
         BaseHTTPRequestHandler.__init__(self, *args)
-
+    
     def do_POST(self):
         print("========= path " + self.path)
+        data=''
         if(self.headers.get('Content-Type', False)):
             ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
             if ctype == 'application/x-www-form-urlencoded':
                 length = int(self.headers['Content-Length'])
                 print(str(length))
-                data = decode_data(self.rfile.read(length))
+                time_now,tmp_data = decode_data(self.rfile.read(length))
+                if(time_now > self.last_time):
+                    self.last_time=time_now
+                    data=tmp_data
             else:
                 print("parse error")
 
@@ -61,7 +66,7 @@ class tunnel:
 
     def init(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Bind socket to local host and port
+                            # Bind socket to local host and port
         try:
             sock.bind((self.host, self.ssh_port))
         except socket.error as msg:
