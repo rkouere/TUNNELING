@@ -51,13 +51,19 @@ class tests:
         logging.debug(test_name + "value tested = {}".format(value_tested))
 
         if r.status_code is not 200:
-            logging.info(test_name + "did not reply with 200")
+            logging.info(
+                bcolors.WARNING +
+                test_name + "did not reply with 200" + bcolors.ENDC)
 
         if r.reason != "OK":
-            logging.info(test_name, "reason is not \"OK\"")
+            logging.info(
+                bcolors.WARNING +
+                test_name + "reason is not \"OK\"" + bcolors.ENDC)
 
         if r.text != value_tested:
-            logging.info(test_name + "text replied is not ok")
+            logging.info(
+                bcolors.WARNING +
+                test_name + "text replied is not ok" + bcolors.ENDC)
 
     def postBasic(self):
         """
