@@ -63,13 +63,17 @@ class tests:
         if r.status_code is not 200:
             logging.info(
                 bcolors.WARNING +
-                test_name + "did not reply with 200" + bcolors.ENDC)
+                test_name +
+                "did not reply with 200 but with {}".format(r.status_code) +
+                bcolors.ENDC)
             test_OK = False
 
         if r.reason != "OK":
             logging.info(
                 bcolors.WARNING +
-                test_name + "reason is not \"OK\"" + bcolors.ENDC)
+                test_name +
+                "reason is not \"OK\" but \"{}\"".format(r.reason) +
+                bcolors.ENDC)
             test_OK = False
 
         return test_OK
