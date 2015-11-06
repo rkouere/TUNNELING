@@ -30,17 +30,24 @@ class tests:
         test_name = "[" + get_name_doc() + "] "
         self.__checkReply__(test_name, r, key, value)
 
-    def __checkReply__(self, test_name, r, key, message):
+    def __checkReply__(self, test_name, r, key, value):
         """
         Checks that the reply is OK
         """
+        test_name = "[" + get_name_doc() + "] "
+        value_tested = key + "=" + str(value)
+        logging.debug(test_name + "key = {}".format(key))
+        logging.debug(test_name + "value = {}".format(value))
+        logging.debug(test_name + "reply = {}".format(r.text))
+        logging.debug(test_name + "value tested = {}".format(value_tested))
+
         if r.status_code is not 200:
             logging.info(test_name + "did not reply with 200")
 
         if r.reason != "OK":
             logging.info(test_name, "reason is not \"OK\"")
 
-        if r.text != 'coucou=12524':
+        if r.text != value_tested:
             logging.info(test_name + "text replied is not ok")
 
     def postB64(self):
@@ -54,7 +61,11 @@ class tests:
         r = requests.post(
             self.url,
             data={key: value})
-        self.__checkReply__(test_name, r, key, value)
+
+        logging.debug(test_name + "key = {}".format(key))
+        logging.debug(test_name + "value = {}".format(value))
+        logging.debug(test_name + "reply = {}".format(r.text))
+        self.__checkReply__(test_name, r, key, value.decode())
 
 
 def getUserMethodsFromClass(c):
