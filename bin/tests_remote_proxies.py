@@ -27,20 +27,26 @@ def get_name_doc():
 
 class tests:
     def __init__(self):
-        self.url = "http://nicolasechallier.com/proxy/home.php"
+        self.url = "http://www.nicolasechallier.com/"
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/"
         self.user_agent += "537.36 (KHTML, like Gecko) Chrome/45.0.2454.101"
         self.user_agent += " Safari/537.36"
+        self.user_agent_header = {"user-agent": self.user_agent}
 
-    def __send_request__(self, url, key, value):
+    def __send_request__(self, url, key, value, headers=None):
         """
         Sends a post request
         Returns the request
         """
-        user_headers = {"user-agent": self.user_agent}
-        r = requests.post(
-            url,
-            data={key: value}, headers=user_headers)
+        if headers is None:
+            r = requests.post(
+                url,
+                data={key: value})
+
+        else:
+            r = requests.post(
+                url,
+                data={key: value}, headers=headers)
         return r
 
     def __checkReply__(self, test_name, r, key, value):
@@ -48,6 +54,7 @@ class tests:
         Checks that the reply is OK
         """
         value_tested = key + "=" + str(value)
+        test_OK = True
         logging.debug(test_name + "key = {}".format(key))
         logging.debug(test_name + "value = {}".format(value))
         logging.debug(test_name + "reply = {}".format(r.text))
@@ -57,25 +64,26 @@ class tests:
             logging.info(
                 bcolors.WARNING +
                 test_name + "did not reply with 200" + bcolors.ENDC)
+            test_OK = False
 
         if r.reason != "OK":
             logging.info(
                 bcolors.WARNING +
                 test_name + "reason is not \"OK\"" + bcolors.ENDC)
+            test_OK = False
 
-        if r.text != value_tested:
-            logging.info(
-                bcolors.WARNING +
-                test_name + "text replied is not ok" + bcolors.ENDC)
+        return test_OK
 
     def postBasic(self):
         """
         Testing that a normal post works
         """
+        test_name = "[" + get_name_doc() + "] "
         key = "coucou"
         value = 12524
-        r = self.__send_request__(self.url, key, value)
-        test_name = "[" + get_name_doc() + "] "
+        logging.warning(test_name + "sending request")
+        r = self.__send_request__(
+            self.url, key, value, headers=self.user_agent_header)
         self.__checkReply__(test_name, r, key, value)
 
     def postB64(self):
