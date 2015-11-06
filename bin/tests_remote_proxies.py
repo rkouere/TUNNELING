@@ -81,7 +81,7 @@ class tests:
         test_name = "[" + get_name_doc() + "] "
         key = "coucou"
         value = 12524
-        logging.warning(test_name + "sending request")
+        logging.debug(test_name + "sending request")
         r = self.__send_request__(
             self.url, key, value, headers=self.user_agent_header)
         self.__checkReply__(test_name, r, key, value)
@@ -176,5 +176,8 @@ if __name__ == "__main__":
     urllib3_logger = logging.getLogger('urllib3')
     urllib3_logger.setLevel(logging.CRITICAL)
 
+    requests_logger = logging.getLogger('requests.packages.urllib3')
+    requests_logger.setLevel(logging.CRITICAL)
+    
     tests = tests()
     runUserMethods(tests, methods)
