@@ -63,6 +63,11 @@ class tests:
                 test_name +
                 "did not reply with 200 but with {}".format(r.status_code) +
                 bcolors.ENDC)
+            logging.info(
+                bcolors.WARNING +
+                test_name +
+                "Response from the server \n{}".format(r.content) +
+                bcolors.ENDC)
             test_OK = False
 
         if r.reason != "OK":
