@@ -27,13 +27,13 @@ def get_name_doc():
 
 class tests:
     def __init__(self):
-        self.url = "http://www.nicolasechallier.com/"
+        self.url = "http://www.nicolasechallier.com"
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/"
         self.user_agent += "537.36 (KHTML, like Gecko) Chrome/45.0.2454.101"
         self.user_agent += " Safari/537.36"
         self.user_agent_header = {"user-agent": self.user_agent}
 
-    def __send_request__(self, url, key, value, headers=None):
+    def __send_request__(self, url, data_to_send, headers=None):
         """
         Sends a post request
         Returns the request
@@ -41,24 +41,21 @@ class tests:
         if headers is None:
             r = requests.post(
                 url,
-                data={key: value})
+                data=data_to_send)
 
         else:
             r = requests.post(
                 url,
-                data={key: value}, headers=headers)
+                data=data_to_send, headers=headers)
         return r
 
-    def __checkReply__(self, test_name, r, key, value):
+    def __checkReply__(self, test_name, r, data):
         """
         Checks that the reply is OK
         """
-        value_tested = key + "=" + str(value)
         test_OK = True
-        logging.debug(test_name + "key = {}".format(key))
-        logging.debug(test_name + "value = {}".format(value))
+        logging.debug(test_name + "data = {}".format(data))
         logging.debug(test_name + "reply = {}".format(r.text))
-        logging.debug(test_name + "value tested = {}".format(value_tested))
 
         if r.status_code is not 200:
             logging.info(
@@ -85,53 +82,54 @@ class tests:
         test_name = "[" + get_name_doc() + "] "
         key = "coucou"
         value = 12524
+        data = {key: value}
         logging.debug(test_name + "sending request")
         r = self.__send_request__(
-            self.url, key, value, headers=self.user_agent_header)
-        self.__checkReply__(test_name, r, key, value)
+            self.url, data, headers=self.user_agent_header)
+        self.__checkReply__(test_name, r, data)
 
     def test_octet_stream(self):
         test_name = "[" + get_name_doc() + "] "
         key = "coucou"
         value = 12524
+        data = {key: value}
         headers = self.user_agent_header
         headers["Content-Type"] = 'application/octet-stream'
         logging.debug(test_name + "header = {}".format(headers))
         r = self.__send_request__(
-            self.url, key, value, headers=headers)
+            self.url, data, headers=headers)
         self.__checkReply__(test_name, r, key, value)
 
     def postB64(self):
         """
         Test proxy accepts b64 type requests
         """
-        key = "coucou"
         value = b64encode(b"salut")
 
         test_name = "[" + get_name_doc() + "] "
-        r = self.__send_request__(self.url, key, value)
+        r = self.__send_request__(self.url + "/proxy/b64.php", value)
 
-        logging.debug(test_name + "key = {}".format(key))
         logging.debug(test_name + "value = {}".format(value))
         logging.debug(test_name + "reply = {}".format(r.text))
-        self.__checkReply__(test_name, r, key, value.decode())
+        self.__checkReply__(test_name, r, value)
 
     def requestOverload(self):
         """
         Tests that a proxy does not stop a high level of requests per seconds
         """
         test_name = "[" + get_name_doc() + "] "
-        number_of_requests = 1000
+        number_of_requests = 150
         key = "coucou"
         value = 1
         for i in range(0, number_of_requests):
+            data = {key: value}
             try:
                 if i % 50 is 0:
                     logging.info(
                         test_name + "sent {} requests to the server".format(i))
                 r = self.__send_request__(
-                    self.url,  key, value)
-                self.__checkReply__(test_name, r, key, value)
+                    self.url, data)
+                self.__checkReply__(test_name, r, data)
             except requests.exceptions.ConnectionError:
                 logging.info(
                     bcolors.WARNING +
