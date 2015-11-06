@@ -1,27 +1,34 @@
 import requests
 import argparse
 import logging
+import inspect
+
+
+def get_name_doc():
+    outerframe = inspect.currentframe().f_back
+    name = outerframe.f_code.co_name
+    return name
 
 
 class tests:
     def __init__(self):
         self.url = "http://nicolasechallier.com/proxy/home.php"
 
-    def testNormalPost(self):
+    def postBasic(self):
         """
         Testing that a normal post works
         """
         r = requests.post(
             self.url,
             data={"coucou": 12524})
-        test_name = "[POST][basic] "
+        test_name = "[" + get_name_doc() + "] "
         if r.status_code is not 200:
             logging.info(test_name + "did not reply with 200")
 
         if r.reason != "OK":
             logging.info(test_name, "reason is not \"OK\"")
 
-        if r.text != 'coucou!!!!!!12524':
+        if r.text != 'coucou=12524':
             logging.info(test_name + "text replied is not ok")
 
 
@@ -43,7 +50,6 @@ def callMethod(o, name):
 
 def runUserMethods(user_class, methods):
     for m in methods:
-        logging.info("{}".format(user_class.testNormalPost.__doc__))
         callMethod(user_class, m)
 
 
