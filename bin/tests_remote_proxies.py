@@ -88,6 +88,17 @@ class tests:
             self.url, data, headers=self.user_agent_header)
         self.__checkReply__(test_name, r, data)
 
+    def post_no_key_value(self):
+        """
+        Testing that a post with only data and not key data works
+        """
+        test_name = "[" + get_name_doc() + "] "
+        value = "maggle"
+        logging.debug(test_name + "sending request")
+        r = self.__send_request__(
+            self.url, value, headers=self.user_agent_header)
+        self.__checkReply__(test_name, r, value)
+
     def test_octet_stream(self):
         test_name = "[" + get_name_doc() + "] "
         key = "coucou"
