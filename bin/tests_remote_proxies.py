@@ -41,6 +41,16 @@ class tests:
         test_name = "[" + get_name_doc() + "] "
         self.__checkReply__(test_name, r, key, value)
 
+    def __send_request__(self, url, key, value):
+        """
+        Sends a post request
+        Returns the request
+        """
+        r = requests.post(
+            url,
+            data={key: value})
+        return r
+
     def __checkReply__(self, test_name, r, key, value):
         """
         Checks that the reply is OK
