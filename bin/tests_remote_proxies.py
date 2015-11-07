@@ -3,7 +3,7 @@ import argparse
 import logging
 import inspect
 from base64 import b64encode  # , b64decode
-
+from time import sleep
 
 class bcolors:
     HEADER = '\033[95m'
@@ -114,7 +114,7 @@ class tests:
         logging.debug(test_name + "header = {}".format(headers))
         r = self.__send_request__(
             self.url, data, headers=headers)
-        self.__checkReply__(test_name, r, key, value)
+        self.__checkReply__(test_name, r, data)
 
     def postB64(self):
         """
@@ -123,7 +123,9 @@ class tests:
         value = b64encode(b"salut")
 
         test_name = "[" + get_name_doc() + "] "
-        r = self.__send_request__(self.url + "/proxy/b64.php", value)
+        r = self.__send_request__(
+            self.url + "/proxy/b64.php",
+            value, headers=self.user_agent_header)
 
         logging.debug(test_name + "value = {}".format(value))
         logging.debug(test_name + "reply = {}".format(r.text))
@@ -144,13 +146,13 @@ class tests:
                     logging.info(
                         test_name + "sent {} requests to the server".format(i))
                 r = self.__send_request__(
-                    self.url, data)
+                    self.url, data, headers=self.user_agent_header)
                 if not self.__checkReply__(test_name, r, data):
                     logging.info(
                         bcolors.WARNING +
                         test_name +
                         "The proxy checks the number of connections/the " +
-                        "standard deviation" +
+                        "standard deviation after {} requests".format(value) +
                         bcolors.ENDC)
                     break
             except requests.exceptions.ConnectionError:
@@ -161,6 +163,7 @@ class tests:
                     bcolors.ENDC)
                 break
             value += 1
+            sleep(0.1)
 
 
 def getUserMethodsFromClass(c):
