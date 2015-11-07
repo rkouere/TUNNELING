@@ -145,7 +145,14 @@ class tests:
                         test_name + "sent {} requests to the server".format(i))
                 r = self.__send_request__(
                     self.url, data)
-                self.__checkReply__(test_name, r, data)
+                if not self.__checkReply__(test_name, r, data):
+                    logging.info(
+                        bcolors.WARNING +
+                        test_name +
+                        "The proxy checks the number of connections/the " +
+                        "standard deviation" +
+                        bcolors.ENDC)
+                    break
             except requests.exceptions.ConnectionError:
                 logging.info(
                     bcolors.WARNING +
